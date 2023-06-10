@@ -35,6 +35,8 @@ class MainWindow(QMainWindow):
         # 创建左侧列表
         self.branch_list = QListWidget()
         self.splitter.addWidget(self.branch_list)
+        # 连接列表项点击事件到槽函数
+        self.branch_list.itemClicked.connect(self.on_branch_selected)
 
         # 创建中间的Canvas部分的默认背景
         self.default_background_label = QLabel(self)
@@ -70,13 +72,11 @@ class MainWindow(QMainWindow):
         # 设置窗口图标（你需要准备一个符合要求的图标文件）
         self.setWindowIcon(QIcon('img/icon.png'))
 
-
-
     def on_import_clicked(self):
         # 可以使用一个文件对话框来让用户选择一个图片文件
         image_path = QFileDialog.getOpenFileName(self, 'Open file', '')[0]
         if image_path:
-            self.problem = Problem()
+            self.problem = Problem(self)
             self.problem.load_from_image(image_path)
 
             # 移除默认背景标签
@@ -85,13 +85,45 @@ class MainWindow(QMainWindow):
             # 创建并设置新的canvas
             self.canvas = self.problem.branches[0].canvas
             self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+            self.branch_list.addItem(self.problem.branches[0].name)
 
             # 在splitter的正确位置添加新的canvas
             self.splitter.insertWidget(1, self.canvas)
 
 
+
+    def on_branch_selected(self, item):
+        selected_branch_name = item.text()
+        # 查找与选中项对应的branch
+        for branch in self.problem.branches:
+            if branch.name == selected_branch_name:
+                # 移除旧的canvas
+                self.canvas.setParent(None)
+
+                # 设置当前canvas为选中branch的canvas
+                self.canvas = branch.canvas
+                self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+                # 在splitter的正确位置添加新的canvas
+                self.splitter.insertWidget(1, self.canvas)
+                break
+
+
     def on_exit_clicked(self):
         QApplication.quit()
+
+
+    def update_branch_list(self):
+        self.branch_list.clear()
+        for branch in self.problem.branches:
+            self.branch_list.addItem(branch.name)
+        self.branch_list.setCurrentRow(0)
+        
+        self.canvas.setParent(None)
+
+        self.canvas = self.problem.branches[0].canvas
+        self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.splitter.insertWidget(1, self.canvas)
 
 
 if __name__ == '__main__':

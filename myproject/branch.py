@@ -2,11 +2,12 @@ from .canvas import Canvas
 from .utils import logprint
 
 class Branch:
-    def __init__(self, problem,idx=0):
+    def __init__(self, problem,name:str,idx=0):
         self.problem = problem
         self.mines = [[False] * problem.columns for _ in range(problem.rows)]
         self.not_mines = [[False] * problem.columns for _ in range(problem.rows)]
         self.idx = idx
+        self.name = name
         self.canvas = Canvas(self)
 
     def mark_mine(self, row, col):
@@ -19,6 +20,14 @@ class Branch:
         self.not_mines[row][col] = True
         self.mines[row][col] = False
 
-    def show(self):
-        logprint(message="Branch%d调用Canvas显示"%self.idx, level="debug")
-        self.canvas.show()
+    def delete_branch(self):
+        self.problem.delete_branch(self)
+
+    def copy_branch(self):
+        self.problem.copy_branch(self)
+
+    def copy_from(self,branch):
+        self.mines = [row[:] for row in branch.mines]
+        self.not_mines = [row[:] for row in branch.not_mines]
+        self.canvas.copy_from(branch.canvas)
+        
