@@ -13,10 +13,9 @@ class Canvas(QWidget):
         self.drawing = True
         self.last_point = None
         self.height = 800
-        self.width = 1000
+        self.width = 1200
         self.backpixmap = QPixmap(self.branch.problem.image_path).scaled(
             self.width, self.height)
-        self.image = self.backpixmap.toImage()
         self.setMinimumSize(self.width, self.height)
         self.pen = QPen(Qt.red,5)
         self.eraser = QPen(Qt.transparent, 10)  # 透明的笔作为橡皮擦
@@ -140,10 +139,8 @@ class Canvas(QWidget):
             self.label.setStyleSheet(f"border: 4px solid {color.name()};")
 
     def delete_branch(self):
-        logprint(message=f"{self.branch.name} deleted.", level="info")
         self.branch.delete_branch()
     def copy_branch(self):
-        logprint(message=f"{self.branch.name} copied.", level="info")
         self.branch.copy_branch()
     def check_branch(self):
         # Logic to check branch

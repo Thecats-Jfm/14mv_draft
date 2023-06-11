@@ -1,51 +1,106 @@
-import sys
-from PyQt5.QtWidgets import QMainWindow, QApplication, QLabel
-from PyQt5.QtGui import QPixmap, QPainter, QPen
-from PyQt5.QtCore import Qt, QPoint
+import cv2
+from collections import defaultdict
+
+def argmax(dic):
+    return max(dic, key=dic.get)
+
+def detect_squares(image):
+    # 转换为灰度图像
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    # 二值化
+    _, binary_image = cv2.threshold(
+        gray_image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+
+    # 查找轮廓
+    contours, _ = cv2.findContours(
+        binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    # 找到最大的正方形
+    max_area = 0
+    largest_square_contour = None
+
+    for contour in contours:
+        perimeter = cv2.arcLength(contour, True)
+        approx_polygon = cv2.approxPolyDP(contour, 0.04 * perimeter, True)
+
+        if len(approx_polygon) == 4:
+            x, y, w, h = cv2.boundingRect(contour)
+            if x < 1 or y < 1 or x + w > image.shape[1] - 1 or y + h > image.shape[0] - 1:
+                continue
+
+            area = w * h
+            if area > max_area:
+                max_area = area
+                largest_square_contour = approx_polygon
+
+    # 计算大正方形的位置和大小
+    x, y, w, h = cv2.boundingRect(largest_square_contour)
+    large_square_position = (x + 1, y + 1, w - 2, h - 2)
+
+    # 收集正方形区域
+    square_areas = []
+    for contour in contours:
+        perimeter = cv2.arcLength(contour, True)
+        approx_polygon = cv2.approxPolyDP(contour, 0.04 * perimeter, True)
+
+        if len(approx_polygon) == 4:
+            x, y, w, h = cv2.boundingRect(contour)
+
+            if large_square_position[0] < x and large_square_position[1] < y and large_square_position[0] + large_square_position[2] > x + w and large_square_position[1] + large_square_position[3] > y + h:
+                area = w * h
+                if area < 100:
+                    continue
+                square_areas.append(area)
+
+    # 估计n的值
+    test_n_scores = defaultdict(int)
+    large_square_area = large_square_position[2] * large_square_position[3]
+
+    for n in range(5, 9):
+        mean_area = large_square_area / (n ** 2)
+        score = 0
+        for area in square_areas:
+            score -= abs(area - mean_area) / (area + mean_area)
+        test_n_scores[n] = score
+
+    estimated_n = argmax(test_n_scores)
+
+    return large_square_position, estimated_n, test_n_scores
 
 
-class DrawingWindow(QMainWindow):
-    def __init__(self):
-        super().__init__()
+# 加载图像
+image_path = './img/6x6.png'
+image = cv2.imread(image_path)
 
-        # 加载背景图片
-        self.background = QPixmap("img/5x5.png")
+# 检测正方形
+large_square_position, estimated_n, test_n_scores = detect_squares(image)
 
-        # 创建一个 QLabel 来展示背景图片
-        self.label = QLabel(self)
-        self.label.setPixmap(self.background)
-        self.setCentralWidget(self.label)
+# 输出结果
+print("Large Square Position:", large_square_position)
+print("Estimated n:", estimated_n)
+print("n scores:", test_n_scores)
 
-        # 设置画笔
-        self.pen = QPen(Qt.red)
-        self.last_point = None
+# 可视化结果
+x, y, w, h = large_square_position
+small_square_width = w // estimated_n
+small_square_height = h // estimated_n
 
-    def mouseMoveEvent(self, event):
-        # 在鼠标移动时进行绘图
-        if event.buttons() & Qt.LeftButton and self.last_point is not None:
-            painter = QPainter(self.background)
-            painter.setPen(self.pen)
-            painter.drawLine(self.last_point, event.pos())
-            painter.end()
+for row in range(estimated_n):
+    for col in range(estimated_n):
+        top_left_x = x + col * small_square_width
+        top_left_y = y + row * small_square_height
+        bottom_right_x = top_left_x + small_square_width
+        bottom_right_y = top_left_y + small_square_height
 
-            # 更新 QLabel
-            self.label.setPixmap(self.background)
+        cv2.rectangle(image, (top_left_x, top_left_y),
+                      (bottom_right_x, bottom_right_y), (0, 255, 255), 2)
+        cv2.putText(image, f"({row},{col})", (top_left_x, top_left_y - 5),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
 
-            # 更新最后一个点的位置
-            self.last_point = event.pos()
+# 显示图像
+cv2.imshow('Detected Squares', image)
 
-    def mousePressEvent(self, event):
-        # 记录鼠标按下时的位置
-        if event.button() == Qt.LeftButton:
-            self.last_point = event.pos()
-
-    def mouseReleaseEvent(self, event):
-        # 清除最后一个点的位置
-        self.last_point = None
-
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = DrawingWindow()
-    window.show()
-    sys.exit(app.exec_())
+# 等待按键然后关闭窗口
+cv2.waitKey(0)
+cv2.destroyAllWindows()
