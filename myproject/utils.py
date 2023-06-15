@@ -1,12 +1,30 @@
 from collections import defaultdict
 import cv2
 import logging
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QFileDialog, QListWidget, QHBoxLayout,
+                             QSizePolicy, QSplitter, QAction, QLabel, QMenuBar, QSplitterHandle)
 
 # 配置日志记录器
 logging.basicConfig(level=logging.DEBUG,  # 设置日志级别为DEBUG
                     format='%(asctime)s [%(levelname)s] %(message)s',  # 设置日志格式
                     datefmt='%Y-%m-%d %H:%M:%S')  # 设置日期格式
 
+class MySplitterHandle(QSplitterHandle):
+    def __init__(self, orientation, splitter):
+        super(MySplitterHandle, self).__init__(orientation, splitter)
+
+    def mouseMoveEvent(self, event):
+        pass
+
+    def mousePressEvent(self, event):
+        pass
+
+class MySplitter(QSplitter):
+    def __init__(self, orientation):
+        super(MySplitter, self).__init__(orientation)
+
+    def createHandle(self):
+        return MySplitterHandle(self.orientation(), self)
 
 def logprint(message, level="info"):
     """

@@ -1,7 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QColorDialog, QPushButton, QSplitter, QVBoxLayout, QColorDialog
+from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QColorDialog, QPushButton, QSplitter, QVBoxLayout
 from PyQt5.QtGui import QPixmap, QPainter, QPen, QImage, QColor, QCursor
-from PyQt5.QtCore import Qt, QPoint,QSize
-from .utils import logprint
+from PyQt5.QtCore import Qt, QPoint, QSize
+from .utils import logprint, MySplitter
 
 
 class Canvas(QWidget):
@@ -16,8 +16,14 @@ class Canvas(QWidget):
         self.width = 1200
         self.backpixmap = QPixmap(self.branch.problem.image_path).scaled(
             self.width, self.height)
+        self.imgh = QPixmap(self.branch.problem.image_path).height()
+        self.imgw = QPixmap(self.branch.problem.image_path).width()
+
+        logprint(f"Image size: {self.imgw} x {self.imgh}", 'debug')
+        logprint(f"Canvas size: {self.width} x {self.height}", 'debug')
+
         self.setMinimumSize(self.width, self.height)
-        self.pen = QPen(Qt.red,5)
+        self.pen = QPen(Qt.red, 5)
         self.eraser = QPen(Qt.transparent, 10)  # 透明的笔作为橡皮擦
 
         # 设置UI
@@ -29,7 +35,7 @@ class Canvas(QWidget):
         self.setLayout(layout)
 
         # 创建一个QSplitter
-        splitter = QSplitter(Qt.Horizontal)
+        splitter = MySplitter(Qt.Horizontal)
         layout.addWidget(splitter)
 
         # 设置画板标签
@@ -48,25 +54,18 @@ class Canvas(QWidget):
         button_container.setLayout(button_layout)
         splitter.addWidget(button_container)
 
-        # 设置颜色选择按钮
-        color_button = QPushButton('Choose Color', self)
-        button_layout.addWidget(color_button)
-        color_button.clicked.connect(self.choose_color)
+        # 创建按钮
+        buttons_info = [
+            ('Choose Color', self.choose_color),
+            ('Delete Branch', self.delete_branch),
+            ('Copy Branch', self.copy_branch),
+            ('Check Branch', self.check_branch)
+        ]
 
-        # 设置Delete Branch按钮
-        delete_branch_button = QPushButton('Delete Branch', self)
-        button_layout.addWidget(delete_branch_button)
-        delete_branch_button.clicked.connect(self.delete_branch)
-
-        # 设置Copy Branch按钮
-        copy_branch_button = QPushButton('Copy Branch', self)
-        button_layout.addWidget(copy_branch_button)
-        copy_branch_button.clicked.connect(self.copy_branch)
-
-        # 设置Check Branch按钮
-        check_branch_button = QPushButton('Check Branch', self)
-        button_layout.addWidget(check_branch_button)
-        check_branch_button.clicked.connect(self.check_branch)
+        for text, callback in buttons_info:
+            button = QPushButton(text, self)
+            button_layout.addWidget(button)
+            button.clicked.connect(callback)
 
         self.label.setStyleSheet(
             f"border: 4px solid {self.pen.color().name()};")
@@ -75,10 +74,12 @@ class Canvas(QWidget):
         if cursor_bitmap:
             self.cursor_size = cursor_bitmap.size()
             print(
-                f"Cursor size: {cursor_size.width()} x {cursor_size.height()}")
+                f"Cursor size: {self.cursor_size.width()} x {self.cursor_size.height()}")
         else:
             self.cursor_size = 16
             print("Could not retrieve cursor bitmap.")
+
+        splitter.setSizes([1000, 100])
 
         self.refresh_display()
 
