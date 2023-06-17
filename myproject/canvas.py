@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QColorDialog,
-    QPushButton, QSplitter, QHBoxLayout
+    QPushButton, QSplitter, QHBoxLayout, QCheckBox
 )
 from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QCursor, QIcon
 from PyQt5.QtCore import Qt, QPoint, QSize, QRectF
@@ -85,10 +85,41 @@ class Canvas(QWidget):
         button_container.setLayout(button_layout)
         splitter.addWidget(button_container)
 
+
+        # 创建一个QCheckBox
+        self.toggle_button = QCheckBox("未完成", self)
+
+        # 将状态切换的槽函数连接到QCheckBox的状态变化信号
+        self.toggle_button.stateChanged.connect(self.on_toggle_button_state_changed)
+
+        button_layout.addWidget(self.toggle_button)
+
+        # 添加颜色选择按钮
+        color_buttons_info = [
+            ('cyan', '#00FFFF'),
+            ('orange', '#FFA600'),
+            ('lime', '#00FF00'),
+            ('yellow', '#FFFF00'),
+            ('red', '#FF0000'),
+            ('blue', '#0000FF'),
+            ('purple', '#A121F0'),
+            ('white', '#FFFFFF')
+        ]
+
+        # 创建颜色选择按钮
+        for color_name, color_code in color_buttons_info:
+            color_button = QPushButton(self)
+            color_button.setStyleSheet(f'background-color: {color_code}')
+            # color_button.setMaximumWidth(20)  # 设置按钮宽度
+            # color_button.setMaximumHeight(20) # 设置按钮高度
+            button_layout.addWidget(color_button)
+            color_button.clicked.connect(lambda _, color=color_code: self.set_color(color))
+
+
         # Create Buttons
         buttons_info = [
             ('Toggle Drawing', self.toggle_drawing),
-            ('Choose Color', self.choose_color),
+            ('Choose Other Color', self.choose_color),
             ('Delete Branch', self.delete_branch),
             ('Copy Branch', self.copy_branch),
             ('Check Branch', self.check_branch)
@@ -125,6 +156,19 @@ class Canvas(QWidget):
         self.label.setPixmap(combined_pixmap)
         self.setFocus()
         # self.label.setPixmap(self.mine_layer)
+
+    def on_toggle_button_state_changed(self, state):
+        # 根据QCheckBox的状态更新显示的文本
+        if state:
+            self.toggle_button.setText("已完成")
+        else:
+            self.toggle_button.setText("未完成")
+
+    # 设置画笔颜色的函数
+    def set_color(self, color_code):
+        color = QColor(color_code)
+        self.pen.setColor(color)
+        self.label.setStyleSheet(f"border: 4px solid {color.name()};")
 
     def mouseMoveEvent(self, event):
         # 如果正在画图且移动的是鼠标左键

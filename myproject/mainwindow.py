@@ -8,6 +8,7 @@ import sys
 from .problem import Problem
 from .utils import *
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -75,15 +76,18 @@ class MainWindow(QMainWindow):
         self.splitter.setSizes([50, 1100])
         self.canvas.setFocus()
 
-
-
     def on_import_clicked(self):
+        if hasattr(self, 'problem'):
+            self.problem = None
+            logprint('Deleted old problem', 'info')
+
         image_path = QFileDialog.getOpenFileName(self, 'Open file', '')[0]
         if image_path:
             self.problem = Problem(self)
             self.problem.load_from_image(image_path)
             self.branch_list.addItem(self.problem.branches[0].name)
             self.replace_canvas(self.problem.branches[0].canvas)
+            self.update_branch_list()
 
     def on_branch_selected(self, item):
         selected_branch_name = item.text()
@@ -95,13 +99,13 @@ class MainWindow(QMainWindow):
     def on_exit_clicked(self):
         QApplication.quit()
 
-    def update_branch_list(self,new_idx=-1):
+    def update_branch_list(self, new_idx=-1):
         self.branch_list.clear()
         for branch in self.problem.branches:
             self.branch_list.addItem(branch.name)
 
         if new_idx == -1:
-            new_idx =0
+            new_idx = 0
 
         self.branch_list.setCurrentRow(new_idx)
         self.replace_canvas(self.problem.branches[new_idx].canvas)
