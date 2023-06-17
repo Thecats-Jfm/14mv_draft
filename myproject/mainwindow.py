@@ -1,3 +1,5 @@
+# 需求：可以放3个按钮，表示“已讨论完“
+
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QFileDialog, QListWidget, QHBoxLayout,
                              QSizePolicy, QSplitter, QAction, QLabel, QMenuBar, QSplitterHandle)
 from PyQt5.QtGui import QIcon, QPixmap
@@ -71,6 +73,8 @@ class MainWindow(QMainWindow):
         self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.splitter.insertWidget(1, self.canvas)
         self.splitter.setSizes([50, 1100])
+        self.canvas.setFocus()
+
 
 
     def on_import_clicked(self):
@@ -91,12 +95,16 @@ class MainWindow(QMainWindow):
     def on_exit_clicked(self):
         QApplication.quit()
 
-    def update_branch_list(self):
+    def update_branch_list(self,new_idx=-1):
         self.branch_list.clear()
         for branch in self.problem.branches:
             self.branch_list.addItem(branch.name)
-        self.branch_list.setCurrentRow(0)
-        self.replace_canvas(self.problem.branches[0].canvas)
+
+        if new_idx == -1:
+            new_idx =0
+
+        self.branch_list.setCurrentRow(new_idx)
+        self.replace_canvas(self.problem.branches[new_idx].canvas)
 
 
 if __name__ == '__main__':
