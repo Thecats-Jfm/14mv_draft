@@ -19,6 +19,7 @@ class Canvas(QWidget):
         self.canvas_width = 1200
         self.pen = QPen(Qt.red, 5)
         self.eraser = QPen(Qt.transparent, 20)
+        self.finished = False
 
         image_path = self.branch.problem.image_path
         background_pixmap = QPixmap(image_path)
@@ -118,6 +119,7 @@ class Canvas(QWidget):
 
         # Create Buttons
         buttons_info = [
+            ('Reset Status', self.reset_status),
             ('Toggle Drawing', self.toggle_drawing),
             ('Choose Other Color', self.choose_color),
             ('Delete Branch', self.delete_branch),
@@ -161,8 +163,12 @@ class Canvas(QWidget):
         # 根据QCheckBox的状态更新显示的文本
         if state:
             self.toggle_button.setText("已完成")
+            self.toggle_button.setChecked(True)
+            self.finished = True
         else:
+            self.finished = False
             self.toggle_button.setText("未完成")
+            self.toggle_button.setChecked(False)
 
     # 设置画笔颜色的函数
     def set_color(self, color_code):
@@ -365,6 +371,8 @@ class Canvas(QWidget):
         else:
             self.label.setCursor(Qt.ArrowCursor)
 
+    def reset_status(self):
+        self.branch.problem.reset_finished()
 
     def copy_from(self, other_canvas):
         self.drawing_layer = other_canvas.drawing_layer.copy()
@@ -374,6 +382,8 @@ class Canvas(QWidget):
             self.toggle_drawing()
         self.eraser = other_canvas.eraser
         self.label.setStyleSheet(f"border: 4px solid {self.pen.color().name()};")
+        if other_canvas.finished:
+            self.on_toggle_button_state_changed(True)
         self.refresh_display()
 
     def clear_drawing_layer(self):

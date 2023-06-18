@@ -95,3 +95,8 @@ class Problem:
         branch_safe.mark_safe(col, row)
         branch.canvas.delete_branch()
         self.update_mainwindow(len(self.branches)-2)
+
+    def reset_finished(self):
+        for branch in self.branches:
+            if branch.canvas.finished:
+                branch.canvas.on_toggle_button_state_changed(False)
