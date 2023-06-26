@@ -24,7 +24,8 @@ class MainWindow(QMainWindow):
     def initialize_window(self):
         # 设置窗口的标题和大小
         self.setWindowTitle('小文の14mv草稿')
-        self.setGeometry(300, 300, 1920, 1080)
+        self.setGeometry(0,0,2560,1500)
+        self.showMaximized()
 
     def create_central_widget(self):
         self.central_widget = QWidget()
@@ -55,6 +56,8 @@ class MainWindow(QMainWindow):
 
     def create_menu_bar(self):
         menubar = self.menuBar()
+        menubar.setStyleSheet("font-size: 170px;")
+
         file_menu = menubar.addMenu('File')
 
         import_action = QAction('Import', self)
@@ -81,16 +84,20 @@ class MainWindow(QMainWindow):
             self.problem = None
             logprint('Deleted old problem', 'info')
 
-        image_path = QFileDialog.getOpenFileName(self, 'Open file', '')[0]
+        image_path = QFileDialog.getOpenFileName(self, 'Open file', r'C:\Users\19000\OneDrive - 北京大学\图片\屏幕截图')[0]
         if image_path:
-            self.problem = Problem(self)
-            self.problem.load_from_image(image_path)
-            self.branch_list.addItem(self.problem.branches[0].name)
-            self.replace_canvas(self.problem.branches[0].canvas)
-            self.update_branch_list()
+            self.from_image_path(image_path)
+
+    def from_image_path(self, image_path):
+        self.problem = Problem(self)
+        self.problem.load_from_image(image_path)
+        self.branch_list.addItem(self.problem.branches[0].name)
+        self.replace_canvas(self.problem.branches[0].canvas)
+        self.update_branch_list()
+
 
     def on_branch_selected(self, item):
-        selected_branch_name = item.text()
+        selected_branch_name = item.text()[:2]
         for branch in self.problem.branches:
             if branch.name == selected_branch_name:
                 self.replace_canvas(branch.canvas)
@@ -100,19 +107,17 @@ class MainWindow(QMainWindow):
         QApplication.quit()
 
     def update_branch_list(self, new_idx=-1):
-        self.branch_list.clear()
-        for branch in self.problem.branches:
-            self.branch_list.addItem(branch.name)
-
         if new_idx == -1:
             new_idx = 0
+        elif new_idx == -2:
+            new_idx = self.branch_list.currentRow()
+    
+        self.branch_list.clear()
+        for branch in self.problem.branches:
+            self.branch_list.addItem(branch.name+('√' if branch.canvas.finished else ''))
 
         self.branch_list.setCurrentRow(new_idx)
         self.replace_canvas(self.problem.branches[new_idx].canvas)
 
 
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    main_window = MainWindow()
-    main_window.show()
-    sys.exit(app.exec_())
+

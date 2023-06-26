@@ -57,6 +57,20 @@ class Canvas(QWidget):
             self.copy_branch()
         elif event.key() == Qt.Key_Delete:
             self.delete_branch()
+        elif event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
+            self.on_toggle_button_state_changed(not self.finished)
+        elif event.key() == Qt.Key_N:
+            self.reset_status()
+        elif event.key() == Qt.Key_Up:
+            new_idx = self.branch.problem.main_window.branch_list.currentRow()-1
+            if new_idx == -1:
+                new_idx = len(self.branch.problem.main_window.branch_list)-1
+            self.branch.problem.main_window.update_branch_list(new_idx)
+        elif event.key() == Qt.Key_Down:
+            new_idx = self.branch.problem.main_window.branch_list.currentRow()+1
+            if new_idx == len(self.branch.problem.main_window.branch_list):
+                new_idx = 0
+            self.branch.problem.main_window.update_branch_list(new_idx)
 
     def init_ui(self):
         # Initialize Layout
@@ -169,6 +183,8 @@ class Canvas(QWidget):
             self.finished = False
             self.toggle_button.setText("未完成")
             self.toggle_button.setChecked(False)
+        self.branch.problem.main_window.update_branch_list(-2)
+        self.setFocus()
 
     # 设置画笔颜色的函数
     def set_color(self, color_code):

@@ -73,9 +73,6 @@ class Problem:
         self.update_mainwindow(branch_idx)
         logprint(f"复制分支{branch.name}为{new_branch.name}", "info")
 
-    def exclude_branch(self, branch):
-        # Logic for excluding a branch
-        pass
 
     def _create_new_branch(self):
         # Private method to create a new branch and add to the lists
