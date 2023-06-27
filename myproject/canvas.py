@@ -2,10 +2,10 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QColorDialog,
     QPushButton, QSplitter, QHBoxLayout, QCheckBox
 )
-from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QCursor, QIcon
+from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QCursor, QIcon, QFontMetrics, QFont
 from PyQt5.QtCore import Qt, QPoint, QSize, QRectF
 from .utils import logprint, MySplitter
-
+import numpy as np
 
 class Canvas(QWidget):
     def __init__(self, branch):
@@ -21,10 +21,9 @@ class Canvas(QWidget):
         self.eraser = QPen(Qt.transparent, 20)
         self.finished = False
 
-        image_path = self.branch.problem.image_path
-        background_pixmap = QPixmap(image_path)
+        background_pixmap = self.branch.problem.background_pixmap
         self.background_pixmap = background_pixmap.scaled(self.canvas_width, self.canvas_height)
-        self.image_height = background_pixmap.height()
+        self.image_height = background_pixmap.height() 
         self.image_width = background_pixmap.width()
 
         # logprint(f"Image Size: {self.image_width} x {self.image_height}")
@@ -100,6 +99,15 @@ class Canvas(QWidget):
         button_container.setLayout(button_layout)
         splitter.addWidget(button_container)
 
+        # Create Count Label
+        self.count_label = QLabel()
+        button_layout.addWidget(self.count_label)
+        default_font = self.count_label.font()
+        font_metrics = QFontMetrics(default_font)
+        new_font_size = 1 * font_metrics.height() # 若干倍的默认字号，后续可以调整
+        new_font = QFont(default_font.family(), new_font_size)
+        self.count_label.setFont(new_font)
+
 
         # 创建一个QCheckBox
         self.toggle_button = QCheckBox("未完成", self)
@@ -170,6 +178,7 @@ class Canvas(QWidget):
         painter.drawPixmap(0, 0, self.drawing_layer)
         painter.end()
         self.label.setPixmap(combined_pixmap)
+        self.count_label.setText(f'🚩  <font color="red">{np.count_nonzero(self.branch.mines):02}</font>    <font color="green">?  {np.count_nonzero(self.branch.safe):02}</font>')
         self.setFocus()
         # self.label.setPixmap(self.mine_layer)
 

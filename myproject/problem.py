@@ -2,6 +2,7 @@ import cv2
 from .utils import logprint, detect_squares
 from .branch import Branch
 import numpy as np
+from PyQt5.QtGui import QPixmap
 
 
 class Problem:
@@ -16,6 +17,7 @@ class Problem:
 
     def load_from_image(self, image_path):
         self.image_path = image_path
+        self.background_pixmap=QPixmap(image_path)
 
         # Log loading image
         logprint("从图片中加载题目", "info")
@@ -65,7 +67,8 @@ class Problem:
 
     def copy_branch(self, branch):
         # Create a new branch and copy data from the existing branch
-        new_branch = self._create_new_branch()
+        # Not create new branch to the bottom, but right below
+        new_branch = self._create_new_branch(branch.index_in_list()+1)
         new_branch.copy_from(branch)
 
         branch_idx = self.branches.index(branch)
@@ -74,24 +77,28 @@ class Problem:
         logprint(f"复制分支{branch.name}为{new_branch.name}", "info")
 
 
-    def _create_new_branch(self):
+    def _create_new_branch(self,idx=-1):
         # Private method to create a new branch and add to the lists
         branch_name = f"{self.branch_count:02}"
         branch = Branch(self, name=branch_name)
         self.branch_count += 1
-        self.branches.append(branch)
+        if idx == -1:
+            self.branches.append(branch)
+        else:
+            self.branches.insert(idx, branch)
         self.name_branches[branch_name] = branch
         return branch
 
     def middle_click(self, branch, col, row):
         branch.canvas.copy_branch()
         branch.canvas.copy_branch()
-        branch_mine = self.branches[-2]
-        branch_safe = self.branches[-1]
+        idx=branch.index_in_list()
+        branch_mine = self.branches[idx+1]
+        branch_safe = self.branches[idx+2]
         branch_mine.mark_mine(col, row)
         branch_safe.mark_safe(col, row)
         branch.canvas.delete_branch()
-        self.update_mainwindow(len(self.branches)-2)
+        self.update_mainwindow(idx)
 
     def reset_finished(self):
         for branch in self.branches:

@@ -84,3 +84,9 @@ class Branch:
         self.mines = [row[:] for row in branch.mines]
         self.safe = [row[:] for row in branch.safe]
         self.canvas.copy_from(branch.canvas)
+
+    def index_in_list(self):
+        for ret in range(len(self.problem.branches)):
+            if self.problem.branches[ret] is self:
+                return ret
+        return -1 # Not in list
