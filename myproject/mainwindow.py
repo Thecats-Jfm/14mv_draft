@@ -29,6 +29,7 @@ class MainWindow(QMainWindow):
 
     def create_central_widget(self):
         self.central_widget = QWidget()
+        self.central_widget.setStyleSheet("qproperty-focusPolicy: NoFocus;")
         self.setCentralWidget(self.central_widget)
         self.main_layout = QHBoxLayout()
         self.splitter = MySplitter(Qt.Horizontal)
@@ -39,7 +40,6 @@ class MainWindow(QMainWindow):
 
         self.branch_list = QListWidget()
         self.splitter.addWidget(self.branch_list)
-        self.branch_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.branch_list.itemClicked.connect(self.on_branch_selected)
 
         self.default_background_layout = QVBoxLayout()
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
             self.canvas.setParent(None)
         if hasattr(self, 'default_background_layout'):
             self.default_background_layout.setParent(None)
-            
+
             self.default_background_label.setParent(None)
             self.bg_reference_label.setParent(None)
             self.reference_copy_button.setParent(None)
@@ -101,7 +101,7 @@ class MainWindow(QMainWindow):
         self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.splitter.insertWidget(1, self.canvas)
         self.splitter.setSizes([50, 1100])
-        
+
         Canvas.is_drawing = not Canvas.is_drawing
         self.canvas.toggle_drawing() # 更改鼠标样式为正确
         self.canvas.set_color(Canvas.color_index)
@@ -140,13 +140,10 @@ class MainWindow(QMainWindow):
             new_idx = 0
         elif new_idx == -2:
             new_idx = self.branch_list.currentRow()
-    
+
         self.branch_list.clear()
         for branch in self.problem.branches:
             self.branch_list.addItem(branch.name+('√' if branch.canvas.finished else ''))
 
         self.branch_list.setCurrentRow(new_idx)
         self.replace_canvas(self.problem.branches[new_idx].canvas)
-
-
-
