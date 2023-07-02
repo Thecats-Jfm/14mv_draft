@@ -59,7 +59,7 @@ class Problem:
         self.branches.remove(branch)
         del self.name_branches[branch_name]
 
-        branch_idx = max(0, branch_idx-1)
+        branch_idx = min(branch_idx, len(self.branches)-1)
 
         # Update main window and log deletion
         self.update_mainwindow(branch_idx)

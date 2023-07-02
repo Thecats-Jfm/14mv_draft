@@ -8,17 +8,31 @@ from .utils import logprint, MySplitter
 import numpy as np
 
 class Canvas(QWidget):
+    is_drawing = False
+    color_index = 3
+    pen = QPen(Qt.yellow, 5)
+    eraser = QPen(Qt.transparent, 20)
+    last_point = None
+    other_color = None
+
+    # 添加颜色选择按钮
+    color_buttons_info = [
+        ('cyan', '#00FFFF'),
+        ('orange', '#FFA600'),
+        ('lime', '#00FF00'),
+        ('yellow', '#FFFF00'),
+        ('red', '#FF0000'),
+        ('blue', '#0000FF'),
+        ('purple', '#A121F0'),
+        ('white', '#FFFFFF')
+    ]
+
     def __init__(self, branch):
         super().__init__()
-
         # Initialize Canvas Attributes
         self.branch = branch
-        self.is_drawing = False
-        self.last_point = None
         self.canvas_height = 800
         self.canvas_width = 1200
-        self.pen = QPen(Qt.red, 5)
-        self.eraser = QPen(Qt.transparent, 20)
         self.finished = False
 
         background_pixmap = self.branch.problem.background_pixmap
@@ -99,6 +113,14 @@ class Canvas(QWidget):
         button_container.setLayout(button_layout)
         splitter.addWidget(button_container)
 
+        # Create Color Label
+        self.color_label = QLabel()
+        button_layout.addWidget(self.color_label)
+        self.color_label.setMinimumHeight(150)
+
+        # Set color label color as current pen color
+        self.color_label.setStyleSheet(f'background-color: {Canvas.pen.color().name()}')
+
         # Create Count Label
         self.count_label = QLabel()
         button_layout.addWidget(self.count_label)
@@ -117,26 +139,6 @@ class Canvas(QWidget):
 
         button_layout.addWidget(self.toggle_button)
 
-        # 添加颜色选择按钮
-        color_buttons_info = [
-            ('cyan', '#00FFFF'),
-            ('orange', '#FFA600'),
-            ('lime', '#00FF00'),
-            ('yellow', '#FFFF00'),
-            ('red', '#FF0000'),
-            ('blue', '#0000FF'),
-            ('purple', '#A121F0'),
-            ('white', '#FFFFFF')
-        ]
-
-        # 创建颜色选择按钮
-        for color_name, color_code in color_buttons_info:
-            color_button = QPushButton(self)
-            color_button.setStyleSheet(f'background-color: {color_code}')
-            # color_button.setMaximumWidth(20)  # 设置按钮宽度
-            # color_button.setMaximumHeight(20) # 设置按钮高度
-            button_layout.addWidget(color_button)
-            color_button.clicked.connect(lambda _, color=color_code: self.set_color(color))
 
 
         # Create Buttons
@@ -154,8 +156,15 @@ class Canvas(QWidget):
             button_layout.addWidget(button)
             button.clicked.connect(callback)
 
-        # Set border color as current pen color
-        self.label.setStyleSheet(f"border: 4px solid {self.pen.color().name()};")
+        # 创建颜色选择按钮
+        for i in range(len(Canvas.color_buttons_info)):
+            color_name, color_code = Canvas.color_buttons_info[i]
+            color_button = QPushButton(self)
+            color_button.setStyleSheet(f'background-color: {color_code}')
+            # color_button.setMaximumWidth(20)  # 设置按钮宽度
+            # color_button.setMaximumHeight(20) # 设置按钮高度
+            button_layout.addWidget(color_button)
+            color_button.clicked.connect(lambda _, color_index = i: self.set_color(color_index))
 
         # Get Cursor Size
         cursor_bitmap = QCursor().bitmap()
@@ -196,10 +205,17 @@ class Canvas(QWidget):
         self.setFocus()
 
     # 设置画笔颜色的函数
-    def set_color(self, color_code):
+    def set_color(self, color_index):
+        Canvas.color_index = color_index
+        if color_index == -1:
+            color_code = Canvas.other_color
+        else:
+            color_code = Canvas.color_buttons_info[color_index][1]
+        Canvas.color_index=color_index
         color = QColor(color_code)
-        self.pen.setColor(color)
-        self.label.setStyleSheet(f"border: 4px solid {color.name()};")
+        Canvas.pen.setColor(color)
+        self.color_label.setStyleSheet(f'background-color: {color.name()}')
+        self.setFocus()
 
     def mouseMoveEvent(self, event):
         # 如果正在画图且移动的是鼠标左键
@@ -212,20 +228,40 @@ class Canvas(QWidget):
         now_pos = self.get_scaled_position(event)
         painter= QPainter(self.drawing_layer)
 
-        if self.is_drawing:
-            if event.buttons() & Qt.LeftButton and self.last_point is not None:
-                painter.setPen(self.pen)
-                painter.drawLine(self.last_point, now_pos)
-            elif event.buttons() & Qt.RightButton and self.last_point is not None:  # 检测是否按下右键
+        if Canvas.is_drawing:
+            if event.buttons() & Qt.LeftButton and Canvas.last_point is not None:
+                painter.setPen(Canvas.pen)
+                painter.drawLine(Canvas.last_point, now_pos)
+            elif event.buttons() & Qt.RightButton and Canvas.last_point is not None:  # 检测是否按下右键
                 painter.setCompositionMode(
                     QPainter.CompositionMode_Clear)  # 设置为擦除模式
-                painter.setPen(self.eraser)
-                painter.drawLine(self.last_point, now_pos)
+                painter.setPen(Canvas.eraser)
+                painter.drawLine(Canvas.last_point, now_pos)
 
-        self.last_point= now_pos
+        Canvas.last_point= now_pos
         painter.end()
 
         self.refresh_display()
+    
+    def wheelEvent(self, event):
+        if not Canvas.is_drawing:
+            return
+        if Canvas.color_index == -1:
+            return
+        times = abs(event.angleDelta().y()) // 120 # 换鼠标之后这个可能失效
+        if event.angleDelta().y() > 0:
+            # 鼠标向上滚动
+            for i in range(times):
+                Canvas.color_index -= 1
+                if Canvas.color_index == -1:
+                    Canvas.color_index = len(Canvas.color_buttons_info)-1
+        else:
+            # 鼠标向下滚动
+            for i in range(times):
+                Canvas.color_index += 1
+                if Canvas.color_index == len(Canvas.color_buttons_info):
+                    Canvas.color_index = 0
+        self.set_color(Canvas.color_index)
 
     def init_grid(self):
         # Calculate grid dimensions
@@ -275,7 +311,7 @@ class Canvas(QWidget):
         if event.button() in (Qt.LeftButton, Qt.RightButton):
             scale_w = self.background_pixmap.width() / self.label.width()
             scale_h = self.background_pixmap.height() / self.label.height()
-            self.last_point = QPoint(
+            Canvas.last_point = QPoint(
                 event.pos().x() * scale_w - self.cursor_size // 2,
                 event.pos().y() * scale_h - self.cursor_size // 2
             )
@@ -284,12 +320,12 @@ class Canvas(QWidget):
         # Clear the last point position
         if event.button() in (Qt.LeftButton, Qt.RightButton, Qt.MiddleButton):
 
-            self.last_point = None
-            if not self.is_drawing:
+            Canvas.last_point = None
+            if not Canvas.is_drawing:
                 now_pos = self.get_scaled_position(event)
                 x1, y1, x2, y2 = self.large_square_position[0], self.large_square_position[1], self.large_square_position[0] + self.large_square_position[2], self.large_square_position[1] + self.large_square_position[3]
 
-                if x1 <= now_pos.x() <= x2 and y1 <= now_pos.y() <= y2:
+                if x1 <= now_pos.x() < x2 and y1 <= now_pos.y() < y2:
 
                     # 计算每个单元格的宽度和高度
                     cell_width = (x2 - x1) / self.estimated_n
@@ -353,15 +389,6 @@ class Canvas(QWidget):
 
 
 
-
-
-
-
-
-
-
-
-
     def get_scaled_position(self, event):
         """
         根据背景图像的大小和label的大小，获取缩放后的位置
@@ -376,9 +403,12 @@ class Canvas(QWidget):
         # Launch color dialog for user to choose color
         color = QColorDialog.getColor()
         if color.isValid():
-            self.pen.setColor(color)
+            Canvas.pen.setColor(color)
+            Canvas.color_index = -1
+            Canvas.other_color = color
             # Set border color as current pen color
-            self.label.setStyleSheet(f"border: 4px solid {color.name()};")
+            self.color_label.setStyleSheet(f'background-color: {color.name()}')
+        
 
     def delete_branch(self):
         self.branch.delete_branch()
@@ -390,8 +420,8 @@ class Canvas(QWidget):
         self.branch.check_branch()
 
     def toggle_drawing(self):
-        self.is_drawing = not self.is_drawing
-        if self.is_drawing:
+        Canvas.is_drawing = not Canvas.is_drawing
+        if Canvas.is_drawing:
             self.label.setCursor(Qt.CrossCursor)
         else:
             self.label.setCursor(Qt.ArrowCursor)
@@ -399,14 +429,11 @@ class Canvas(QWidget):
     def reset_status(self):
         self.branch.problem.reset_finished()
 
-    def copy_from(self, other_canvas):
+    def copy_from(self, other_canvas):###
         self.drawing_layer = other_canvas.drawing_layer.copy()
         self.mine_layer = other_canvas.mine_layer.copy()
-        self.pen = other_canvas.pen
-        if other_canvas.is_drawing:
-            self.toggle_drawing()
-        self.eraser = other_canvas.eraser
-        self.label.setStyleSheet(f"border: 4px solid {self.pen.color().name()};")
+
+        self.color_label.setStyleSheet(f'background-color: {Canvas.pen.color().name()}')
         if other_canvas.finished:
             self.on_toggle_button_state_changed(True)
         self.refresh_display()

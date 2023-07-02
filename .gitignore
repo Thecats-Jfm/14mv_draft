@@ -3,3 +3,4 @@ build
 .gitignore
 tests
 *.json
+temp*.*

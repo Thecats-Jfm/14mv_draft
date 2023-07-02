@@ -1,13 +1,13 @@
 # 需求：可以放3个按钮，表示“已讨论完“
 
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QFileDialog, QListWidget, QHBoxLayout,
-                             QSizePolicy, QSplitter, QAction, QLabel, QMenuBar, QSplitterHandle)
+from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QFileDialog, QListWidget, QHBoxLayout, QVBoxLayout,
+                             QSizePolicy, QSplitter, QAction, QLabel, QMenuBar, QSplitterHandle, QPushButton)
 from PyQt5.QtGui import QIcon, QPixmap
 from PyQt5.QtCore import Qt
 import sys
 from .problem import Problem
 from .utils import *
-
+from .canvas import Canvas
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -39,18 +39,38 @@ class MainWindow(QMainWindow):
 
         self.branch_list = QListWidget()
         self.splitter.addWidget(self.branch_list)
+        self.branch_list.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.branch_list.itemClicked.connect(self.on_branch_selected)
+
+        self.default_background_layout = QVBoxLayout()
 
         self.default_background_label = QLabel(self)
         pixmap = QPixmap('img/bg.png')
         self.default_background_label.setPixmap(pixmap)
         self.default_background_label.setScaledContents(True)
+        self.default_background_label.setFixedSize(pixmap.size())
 
         sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.default_background_label.setSizePolicy(sizePolicy)
 
-        self.splitter.addWidget(self.default_background_label)
+        self.reference_website = r"https://www.bilibili.com/opus/755321637587386404"
+
+        self.bg_reference_label = QLabel()
+        self.bg_reference_label.setText(f"<font size=80>图片作者：B站 @墨鱼鱼鱼鱼<br /><br />{self.reference_website} </font>")
+
+        self.reference_copy_button = QPushButton()
+        self.reference_copy_button.setText("点击复制链接")
+        self.reference_copy_button.setStyleSheet("font-size: 80px;")
+        def on_reference_copy_clicked():
+            QApplication.clipboard().setText(self.reference_website)
+        self.reference_copy_button.clicked.connect(on_reference_copy_clicked)
+
+
+        self.main_layout.addLayout(self.default_background_layout)
         self.splitter.setSizes([20, 1100])
+        self.default_background_layout.addWidget(self.default_background_label)
+        self.default_background_layout.addWidget(self.bg_reference_label)
+        self.default_background_layout.addWidget(self.reference_copy_button)
 
         self.central_widget.setLayout(self.main_layout)
 
@@ -71,12 +91,21 @@ class MainWindow(QMainWindow):
     def replace_canvas(self, new_canvas):
         if hasattr(self, 'canvas'):
             self.canvas.setParent(None)
-        if hasattr(self, 'default_background_label'):
+        if hasattr(self, 'default_background_layout'):
+            self.default_background_layout.setParent(None)
+            
             self.default_background_label.setParent(None)
+            self.bg_reference_label.setParent(None)
+            self.reference_copy_button.setParent(None)
         self.canvas = new_canvas
         self.canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.splitter.insertWidget(1, self.canvas)
         self.splitter.setSizes([50, 1100])
+        
+        Canvas.is_drawing = not Canvas.is_drawing
+        self.canvas.toggle_drawing() # 更改鼠标样式为正确
+        self.canvas.set_color(Canvas.color_index)
+
         self.canvas.setFocus()
 
     def on_import_clicked(self):
