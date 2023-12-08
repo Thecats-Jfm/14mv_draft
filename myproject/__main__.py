@@ -5,8 +5,13 @@ import sys, os, datetime
 
 def main():
     app = QApplication(sys.argv)
-    
     if 'from_screen' in sys.argv:
+        if "no_grid" in sys.argv:
+            grid = "no_grid"
+        elif "manual" in sys.argv:
+            grid = "manual"
+        else:
+            grid = "auto"
         now = datetime.datetime.now()
         folder_path = r'C:\Users\19000\OneDrive - 北京大学\图片\屏幕截图'
         screenshot = ImageGrab.grab()
@@ -16,7 +21,7 @@ def main():
         latest_file = max(paths, key=os.path.getctime)
 
         main_window = MainWindow()
-        main_window.from_image_path(latest_file)
+        main_window.from_image_path(latest_file,grid)
     else:
         main_window = MainWindow()
 

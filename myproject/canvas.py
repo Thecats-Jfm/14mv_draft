@@ -10,7 +10,7 @@ import numpy as np
 class Canvas(QWidget):
     is_drawing = False
     color_index = 3
-    pen = QPen(Qt.yellow, 5)
+    pen = QPen(Qt.red, 5)
     eraser = QPen(Qt.transparent, 20)
     last_point = None
     other_color = None
@@ -20,7 +20,7 @@ class Canvas(QWidget):
         ('cyan', '#00FFFF'),
         ('orange', '#FFA600'),
         ('lime', '#00FF00'),
-        ('yellow', '#FFFF00'),
+        ('myYellow', '#E1E100'),
         ('red', '#FF0000'),
         ('blue', '#0000FF'),
         ('purple', '#A121F0'),
@@ -40,21 +40,23 @@ class Canvas(QWidget):
         self.image_height = background_pixmap.height() 
         self.image_width = background_pixmap.width()
 
+        self.estimated_n = self.branch.problem.estimated_n
+
         # logprint(f"Image Size: {self.image_width} x {self.image_height}")
         # logprint(f"Canvas Size: {self.canvas_width} x {self.canvas_height}")
+        if self.branch.problem.estimated_n != 0:
+            position = self.branch.problem.large_square_position
+            self.large_square_position = [
+                round(position[0] * self.canvas_width / self.image_width),
+                round(position[1] * self.canvas_height / self.image_height),
+                round(position[2] * self.canvas_width / self.image_width),
+                round(position[3] * self.canvas_height / self.image_height)
+            ]
 
-        position = self.branch.problem.large_square_position
-        self.large_square_position = [
-            round(position[0] * self.canvas_width / self.image_width),
-            round(position[1] * self.canvas_height / self.image_height),
-            round(position[2] * self.canvas_width / self.image_width),
-            round(position[3] * self.canvas_height / self.image_height)
-        ]
-
-        self.estimated_n = self.branch.problem.estimated_n
-        self.safe_icon = QIcon("img/safe.png").pixmap(QSize(100, 100))
-        self.mine_icon = QIcon("img/mine.png").pixmap(QSize(100, 100))
-        self.choose_icon = QIcon("img/choose.png").pixmap(QSize(100, 100))
+            
+            self.safe_icon = QIcon("img/safe.png").pixmap(QSize(100, 100))
+            self.mine_icon = QIcon("img/mine.png").pixmap(QSize(100, 100))
+            self.choose_icon = QIcon("img/choose.png").pixmap(QSize(100, 100))
 
         self.init_ui()
 
@@ -264,46 +266,47 @@ class Canvas(QWidget):
         self.set_color(Canvas.color_index)
 
     def init_grid(self):
-        # Calculate grid dimensions
-        width = self.large_square_position[2]
-        height = self.large_square_position[3]
-        x1 = self.large_square_position[0]
-        y1 = self.large_square_position[1]
-        x2 = x1 + width
-        y2 = y1 + height
+        if self.estimated_n != 0:
+            # Calculate grid dimensions
+            width = self.large_square_position[2]
+            height = self.large_square_position[3]
+            x1 = self.large_square_position[0]
+            y1 = self.large_square_position[1]
+            x2 = x1 + width
+            y2 = y1 + height
 
-        # logprint(f"width: {width}, height: {height}", level="debug")
+            # logprint(f"width: {width}, height: {height}", level="debug")
 
-        # Set the number of rows and columns for the n*n grid
-        n = self.estimated_n
+            # Set the number of rows and columns for the n*n grid
+            n = self.estimated_n
 
-        # Create QPixmap object
-        pixmap = self.background_pixmap
+            # Create QPixmap object
+            pixmap = self.background_pixmap
 
-        # Create QPainter object
-        painter = QPainter(pixmap)
+            # Create QPainter object
+            painter = QPainter(pixmap)
 
-        # Create and set QPen object
-        pen = QPen(Qt.blue)  # Set color
-        pen.setWidth(3)  # Set line width
-        pen.setStyle(Qt.DashLine)  # Set dash line style
-        painter.setPen(pen)
+            # Create and set QPen object
+            pen = QPen(Qt.cyan)  # Set color
+            pen.setWidth(3)  # Set line width
+            pen.setStyle(Qt.DashLine)  # Set dash line style
+            painter.setPen(pen)
 
-        # Calculate cell width and height
-        cell_width = width / n
-        cell_height = height / n
+            # Calculate cell width and height
+            cell_width = width / n
+            cell_height = height / n
 
-        # logprint(f"cell_width: {cell_width}, cell_height: {cell_height}", level="debug")
+            # logprint(f"cell_width: {cell_width}, cell_height: {cell_height}", level="debug")
 
-        # Draw grid
-        for i in range(n + 1):
-            # Draw horizontal lines
-            painter.drawLine(x1, y1 + i * cell_height, x2, y1 + i * cell_height)
-            # Draw vertical lines
-            painter.drawLine(x1 + i * cell_width, y1, x1 + i * cell_width, y2)
+            # Draw grid
+            for i in range(n + 1):
+                # Draw horizontal lines
+                painter.drawLine(x1, y1 + i * cell_height, x2, y1 + i * cell_height)
+                # Draw vertical lines
+                painter.drawLine(x1 + i * cell_width, y1, x1 + i * cell_width, y2)
 
-        # End drawing
-        painter.end()
+            # End drawing
+            painter.end()
 
     def mousePressEvent(self, event):
         # Record mouse position when pressed
@@ -321,7 +324,7 @@ class Canvas(QWidget):
         if event.button() in (Qt.LeftButton, Qt.RightButton, Qt.MiddleButton):
 
             Canvas.last_point = None
-            if not Canvas.is_drawing:
+            if not Canvas.is_drawing and self.estimated_n!=0:
                 now_pos = self.get_scaled_position(event)
                 x1, y1, x2, y2 = self.large_square_position[0], self.large_square_position[1], self.large_square_position[0] + self.large_square_position[2], self.large_square_position[1] + self.large_square_position[3]
 
@@ -347,45 +350,47 @@ class Canvas(QWidget):
                         self.branch.middle_click(cell_x, cell_y)
 
     def draw_icon_in_cell(self, cell_x, cell_y, icon):
-        # 计算每个单元格的宽度和高度
-        cell_width = self.large_square_position[2] / self.estimated_n
-        cell_height = self.large_square_position[3] / self.estimated_n
+        if self.estimated_n != 0:
+            # 计算每个单元格的宽度和高度
+            cell_width = self.large_square_position[2] / self.estimated_n
+            cell_height = self.large_square_position[3] / self.estimated_n
 
-        # 计算icon的中心坐标
-        icon_x = self.large_square_position[0] + cell_x * cell_width + cell_width / 2
-        icon_y = self.large_square_position[1] + cell_y * cell_height + cell_height / 2
+            # 计算icon的中心坐标
+            icon_x = self.large_square_position[0] + cell_x * cell_width + cell_width / 2
+            icon_y = self.large_square_position[1] + cell_y * cell_height + cell_height / 2
 
-        # 创建一个 QPainter 对象
-        painter = QPainter(self.mine_layer)
+            # 创建一个 QPainter 对象
+            painter = QPainter(self.mine_layer)
 
-        # 将icon绘制到中心位置，假设icon的大小为 icon_size x icon_size
-        icon_size = min(cell_width, cell_height) * 1.3  # 调整图标的大小以适应单元格
-        icon = icon.scaled(icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)  # 调整图标大小
+            # 将icon绘制到中心位置，假设icon的大小为 icon_size x icon_size
+            icon_size = min(cell_width, cell_height) * 1.3  # 调整图标的大小以适应单元格
+            icon = icon.scaled(icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)  # 调整图标大小
 
-        # 将icon绘制到中心位置
-        painter.drawPixmap(icon_x - icon_size / 2, icon_y - icon_size / 2, icon)
-        painter.end()
-        self.refresh_display()
+            # 将icon绘制到中心位置
+            painter.drawPixmap(icon_x - icon_size / 2, icon_y - icon_size / 2, icon)
+            painter.end()
+            self.refresh_display()
 
     def clear_icon_in_cell(self, cell_x, cell_y):
-        # 计算每个单元格的宽度和高度
-        cell_width = self.large_square_position[2] / self.estimated_n
-        cell_height = self.large_square_position[3] / self.estimated_n
+        if self.estimated_n != 0:
+            # 计算每个单元格的宽度和高度
+            cell_width = self.large_square_position[2] / self.estimated_n
+            cell_height = self.large_square_position[3] / self.estimated_n
 
-        # 创建一个 QPainter 对象
-        painter = QPainter(self.mine_layer)
+            # 创建一个 QPainter 对象
+            painter = QPainter(self.mine_layer)
 
-        # 设置composition mode为清除模式
-        painter.setCompositionMode(QPainter.CompositionMode_Clear)
+            # 设置composition mode为清除模式
+            painter.setCompositionMode(QPainter.CompositionMode_Clear)
 
-        # 计算icon的区域
-        icon_x = self.large_square_position[0] + cell_x * cell_width
-        icon_y = self.large_square_position[1] + cell_y * cell_height
+            # 计算icon的区域
+            icon_x = self.large_square_position[0] + cell_x * cell_width
+            icon_y = self.large_square_position[1] + cell_y * cell_height
 
-        # 使用eraseRect删除这个区域
-        painter.eraseRect(QRectF(icon_x, icon_y, cell_width, cell_height))
-        painter.end()
-        self.refresh_display()
+            # 使用eraseRect删除这个区域
+            painter.eraseRect(QRectF(icon_x, icon_y, cell_width, cell_height))
+            painter.end()
+            self.refresh_display()
 
 
 

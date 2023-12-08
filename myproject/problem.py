@@ -3,6 +3,7 @@ from .utils import logprint, detect_squares
 from .branch import Branch
 import numpy as np
 from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QInputDialog
 
 
 class Problem:
@@ -15,7 +16,8 @@ class Problem:
         self.main_window = main_window
         self.branch_count = 0
 
-    def load_from_image(self, image_path):
+    def load_from_image(self, image_path, grid="auto"):
+        '''grid: auto; no_grid; manual'''
         self.image_path = image_path
         self.background_pixmap=QPixmap(image_path)
 
@@ -23,22 +25,35 @@ class Problem:
         logprint("从图片中加载题目", "info")
         logprint(f"图片路径: {image_path}", "debug")
 
-        # Read image and detect squares
-        with open(image_path, 'rb') as f:
-            file_bytes = np.asarray(bytearray(f.read()), dtype=np.uint8)
+        if(grid == "auto"):
+            # Read image and detect squares
+            with open(image_path, 'rb') as f:
+                file_bytes = np.asarray(bytearray(f.read()), dtype=np.uint8)
 
-        # 使用OpenCV的imdecode函数从字节解码图像
-        image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-        self.large_square_position, self.estimated_n, self.test_n_scores = detect_squares(
-            image)
+            # 使用OpenCV的imdecode函数从字节解码图像
+            image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
+            self.large_square_position, self.estimated_n, self.test_n_scores = detect_squares(
+                image)
 
-        # Log details
-        # logprint(f"Large Square Position: {self.large_square_position}", "debug")
-        logprint(f"Estimated n: {self.estimated_n}", "debug")
-        logprint(f"n scores: {self.test_n_scores}", "debug")
-        logprint(
-            message=f"加载题目完成，尺寸={self.estimated_n}x{self.estimated_n}", level="info")
+            # Log details
+            # logprint(f"Large Square Position: {self.large_square_position}", "debug")
+            logprint(f"Estimated n: {self.estimated_n}", "debug")
+            logprint(f"n scores: {self.test_n_scores}", "debug")
+            logprint(
+                message=f"加载题目完成，尺寸={self.estimated_n}x{self.estimated_n}", level="info")
 
+            
+        elif(grid == "no_grid"):
+            self.estimated_n = 0
+            self.test_n_scores = []
+            self.large_square_position = None
+            logprint("加载题目完成，无网格", "info")
+        elif(grid == "manual"):
+            #temp
+            text, ok = QInputDialog.getText(None, 'Input Dialog', 'n:')
+            self.estimated_n = int(text)
+            self.large_square_position = (629,654,491*self.estimated_n//7,515*self.estimated_n//7)
+        
         # Initialize main branch
         self.columns = self.estimated_n
         self.rows = self.estimated_n
@@ -79,7 +94,7 @@ class Problem:
 
     def _create_new_branch(self,idx=-1):
         # Private method to create a new branch and add to the lists
-        branch_name = f"{self.branch_count:02}"
+        branch_name = f"{self.branch_count:03}"
         branch = Branch(self, name=branch_name)
         self.branch_count += 1
         if idx == -1:

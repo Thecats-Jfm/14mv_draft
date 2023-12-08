@@ -53,9 +53,29 @@ def detect_squares(image):
     # 转换为灰度图像
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    # 二值化
+    #二值化
+
+    # #默认配色
+    # _, binary_image = cv2.threshold(
+    #     gray_image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+
+    # 粉白配色
     _, binary_image = cv2.threshold(
-        gray_image, 0, 255, cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)
+        gray_image, 210, 255, cv2.THRESH_BINARY)
+    
+    if __name__ == "__main__":
+        # 显示图像
+        cv2.imshow('gray_image', gray_image)
+
+        # 等待按键然后关闭窗口
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        # 显示图像
+        cv2.imshow('binary image', binary_image)
+
+        # 等待按键然后关闭窗口
+        cv2.waitKey(0)
+        cv2.destroyAllWindows() 
 
     # 查找轮廓
     contours, _ = cv2.findContours(
@@ -114,8 +134,9 @@ def detect_squares(image):
     return large_square_position, estimated_n, test_n_scores
 
 if __name__ == "__main__":
+    app=QApplication([])
     # 加载图像
-    image_path = './img/5x5.png'
+    image_path = QFileDialog.getOpenFileName(QMainWindow(), 'Open file', r'D:\github\14mv_draft\img')[0]
     image = cv2.imread(image_path)
 
     # 检测正方形

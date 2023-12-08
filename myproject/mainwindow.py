@@ -116,17 +116,19 @@ class MainWindow(QMainWindow):
         image_path = QFileDialog.getOpenFileName(self, 'Open file', r'C:\Users\19000\OneDrive - 北京大学\图片\屏幕截图')[0]
         if image_path:
             self.from_image_path(image_path)
+    
+    # puphich: on_import_no_grid_clicked
 
-    def from_image_path(self, image_path):
+    def from_image_path(self, image_path,grid="auto"):
         self.problem = Problem(self)
-        self.problem.load_from_image(image_path)
+        self.problem.load_from_image(image_path,grid)
         self.branch_list.addItem(self.problem.branches[0].name)
         self.replace_canvas(self.problem.branches[0].canvas)
         self.update_branch_list()
 
 
     def on_branch_selected(self, item):
-        selected_branch_name = item.text()[:2]
+        selected_branch_name = item.text()[:3]
         for branch in self.problem.branches:
             if branch.name == selected_branch_name:
                 self.replace_canvas(branch.canvas)
