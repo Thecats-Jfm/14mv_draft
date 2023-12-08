@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QColorDialog,
     QPushButton, QSplitter, QHBoxLayout, QCheckBox
 )
-from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QCursor, QIcon, QFontMetrics, QFont
+from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QCursor, QIcon, QFontMetrics, QFont, QPalette
 from PyQt5.QtCore import Qt, QPoint, QSize, QRectF
 from .utils import logprint, MySplitter
 import numpy as np
@@ -37,7 +37,7 @@ class Canvas(QWidget):
 
         background_pixmap = self.branch.problem.background_pixmap
         self.background_pixmap = background_pixmap.scaled(self.canvas_width, self.canvas_height)
-        self.image_height = background_pixmap.height() 
+        self.image_height = background_pixmap.height()
         self.image_width = background_pixmap.width()
 
         self.estimated_n = self.branch.problem.estimated_n
@@ -119,9 +119,12 @@ class Canvas(QWidget):
         self.color_label = QLabel()
         button_layout.addWidget(self.color_label)
         self.color_label.setMinimumHeight(150)
+        self.color_label.setAutoFillBackground(True)
 
         # Set color label color as current pen color
-        self.color_label.setStyleSheet(f'background-color: {Canvas.pen.color().name()}')
+        palette = self.color_label.palette()
+        palette.setColor(QPalette.Background, Canvas.pen.color())
+        self.color_label.setPalette(palette)
 
         # Create Count Label
         self.count_label = QLabel()
@@ -162,7 +165,7 @@ class Canvas(QWidget):
         for i in range(len(Canvas.color_buttons_info)):
             color_name, color_code = Canvas.color_buttons_info[i]
             color_button = QPushButton(self)
-            color_button.setStyleSheet(f'background-color: {color_code}')
+            color_button.setStyleSheet(f'background-color: {color_code};')
             # color_button.setMaximumWidth(20)  # 设置按钮宽度
             # color_button.setMaximumHeight(20) # 设置按钮高度
             button_layout.addWidget(color_button)
@@ -190,8 +193,6 @@ class Canvas(QWidget):
         painter.end()
         self.label.setPixmap(combined_pixmap)
         self.count_label.setText(f'🚩  <font color="red">{np.count_nonzero(self.branch.mines):02}</font>    <font color="green">?  {np.count_nonzero(self.branch.safe):02}</font>')
-        self.setFocus()
-        # self.label.setPixmap(self.mine_layer)
 
     def on_toggle_button_state_changed(self, state):
         # 根据QCheckBox的状态更新显示的文本
@@ -204,7 +205,6 @@ class Canvas(QWidget):
             self.toggle_button.setText("未完成")
             self.toggle_button.setChecked(False)
         self.branch.problem.main_window.update_branch_list(-2)
-        self.setFocus()
 
     # 设置画笔颜色的函数
     def set_color(self, color_index):
@@ -216,17 +216,11 @@ class Canvas(QWidget):
         Canvas.color_index=color_index
         color = QColor(color_code)
         Canvas.pen.setColor(color)
-        self.color_label.setStyleSheet(f'background-color: {color.name()}')
-        self.setFocus()
+        palette = self.color_label.palette()
+        palette.setColor(QPalette.Background, Canvas.pen.color())
+        self.color_label.setPalette(palette)
 
     def mouseMoveEvent(self, event):
-        # 如果正在画图且移动的是鼠标左键
-        # logprint(message=f"Canvas size: {self.label.size()}", level="debug")
-        # logprint(
-        #     message=f"Drawing layer size: {self.drawing_layer.size()}", level="debug")
-        # logprint(
-        #     message=f"background_pixmap size: {self.background_pixmap.size()}", level="debug")
-
         now_pos = self.get_scaled_position(event)
         painter= QPainter(self.drawing_layer)
 
@@ -244,7 +238,7 @@ class Canvas(QWidget):
         painter.end()
 
         self.refresh_display()
-    
+
     def wheelEvent(self, event):
         if not Canvas.is_drawing:
             return
@@ -412,8 +406,9 @@ class Canvas(QWidget):
             Canvas.color_index = -1
             Canvas.other_color = color
             # Set border color as current pen color
-            self.color_label.setStyleSheet(f'background-color: {color.name()}')
-        
+            palette = self.color_label.palette()
+            palette.setColor(QPalette.Background, Canvas.pen.color())
+            self.color_label.setPalette(palette)
 
     def delete_branch(self):
         self.branch.delete_branch()
@@ -437,8 +432,9 @@ class Canvas(QWidget):
     def copy_from(self, other_canvas):###
         self.drawing_layer = other_canvas.drawing_layer.copy()
         self.mine_layer = other_canvas.mine_layer.copy()
-
-        self.color_label.setStyleSheet(f'background-color: {Canvas.pen.color().name()}')
+        palette = self.color_label.palette()
+        palette.setColor(QPalette.Background, Canvas.pen.color())
+        self.color_label.setPalette(palette)
         if other_canvas.finished:
             self.on_toggle_button_state_changed(True)
         self.refresh_display()
