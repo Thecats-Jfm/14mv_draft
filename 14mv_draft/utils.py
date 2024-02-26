@@ -50,6 +50,8 @@ def argmax(dic):
     return max(dic, key=dic.get)
 
 def detect_squares(image):
+    '''目前只支持预设配色1与粉白配色,参见img/pink_white.png与img/set1.png'''
+    
     # 转换为灰度图像
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -62,7 +64,7 @@ def detect_squares(image):
     # 粉白配色
     _, binary_image = cv2.threshold(
         gray_image, 210, 255, cv2.THRESH_BINARY)
-    
+
     if __name__ == "__main__":
         # 显示图像
         cv2.imshow('gray_image', gray_image)
@@ -75,7 +77,7 @@ def detect_squares(image):
 
         # 等待按键然后关闭窗口
         cv2.waitKey(0)
-        cv2.destroyAllWindows() 
+        cv2.destroyAllWindows()
 
     # 查找轮廓
     contours, _ = cv2.findContours(

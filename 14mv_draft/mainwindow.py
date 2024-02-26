@@ -113,10 +113,10 @@ class MainWindow(QMainWindow):
             self.problem = None
             logprint('Deleted old problem', 'info')
 
-        image_path = QFileDialog.getOpenFileName(self, 'Open file', r'C:\Users\19000\OneDrive - 北京大学\图片\屏幕截图')[0]
+        image_path = QFileDialog.getOpenFileName(self, 'Load Image')[0]
         if image_path:
             self.from_image_path(image_path)
-    
+
     # puphich: on_import_no_grid_clicked
 
     def from_image_path(self, image_path,grid="auto"):
