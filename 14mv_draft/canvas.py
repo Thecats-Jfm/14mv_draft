@@ -1,11 +1,28 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QColorDialog,
-    QPushButton, QSplitter, QHBoxLayout, QCheckBox
+    QWidget,
+    QVBoxLayout,
+    QLabel,
+    QColorDialog,
+    QPushButton,
+    QSplitter,
+    QHBoxLayout,
+    QCheckBox,
 )
-from PyQt5.QtGui import QPixmap, QPainter, QPen, QColor, QCursor, QIcon, QFontMetrics, QFont, QPalette
+from PyQt5.QtGui import (
+    QPixmap,
+    QPainter,
+    QPen,
+    QColor,
+    QCursor,
+    QIcon,
+    QFontMetrics,
+    QFont,
+    QPalette,
+)
 from PyQt5.QtCore import Qt, QPoint, QSize, QRectF
 from .utils import logprint, MySplitter
 import numpy as np
+
 
 class Canvas(QWidget):
     is_drawing = False
@@ -17,14 +34,14 @@ class Canvas(QWidget):
 
     # 添加颜色选择按钮
     color_buttons_info = [
-        ('cyan', '#00FFFF'),
-        ('orange', '#FFA600'),
-        ('lime', '#00FF00'),
-        ('myYellow', '#E1E100'),
-        ('red', '#FF0000'),
-        ('blue', '#0000FF'),
-        ('purple', '#A121F0'),
-        ('white', '#FFFFFF')
+        ("cyan", "#00FFFF"),
+        ("orange", "#FFA600"),
+        ("lime", "#00FF00"),
+        ("myYellow", "#E1E100"),
+        ("red", "#FF0000"),
+        ("blue", "#0000FF"),
+        ("purple", "#A121F0"),
+        ("white", "#FFFFFF"),
     ]
 
     def __init__(self, branch):
@@ -36,7 +53,9 @@ class Canvas(QWidget):
         self.finished = False
 
         background_pixmap = self.branch.problem.background_pixmap
-        self.background_pixmap = background_pixmap.scaled(self.canvas_width, self.canvas_height)
+        self.background_pixmap = background_pixmap.scaled(
+            self.canvas_width, self.canvas_height
+        )
         self.image_height = background_pixmap.height()
         self.image_width = background_pixmap.width()
 
@@ -50,10 +69,9 @@ class Canvas(QWidget):
                 round(position[0] * self.canvas_width / self.image_width),
                 round(position[1] * self.canvas_height / self.image_height),
                 round(position[2] * self.canvas_width / self.image_width),
-                round(position[3] * self.canvas_height / self.image_height)
+                round(position[3] * self.canvas_height / self.image_height),
             ]
 
-            
             self.safe_icon = QIcon("img/safe.png").pixmap(QSize(100, 100))
             self.mine_icon = QIcon("img/mine.png").pixmap(QSize(100, 100))
             self.choose_icon = QIcon("img/choose.png").pixmap(QSize(100, 100))
@@ -77,12 +95,12 @@ class Canvas(QWidget):
         elif event.key() == Qt.Key_N:
             self.reset_status()
         elif event.key() == Qt.Key_Up:
-            new_idx = self.branch.problem.main_window.branch_list.currentRow()-1
+            new_idx = self.branch.problem.main_window.branch_list.currentRow() - 1
             if new_idx == -1:
-                new_idx = len(self.branch.problem.main_window.branch_list)-1
+                new_idx = len(self.branch.problem.main_window.branch_list) - 1
             self.branch.problem.main_window.update_branch_list(new_idx)
         elif event.key() == Qt.Key_Down:
-            new_idx = self.branch.problem.main_window.branch_list.currentRow()+1
+            new_idx = self.branch.problem.main_window.branch_list.currentRow() + 1
             if new_idx == len(self.branch.problem.main_window.branch_list):
                 new_idx = 0
             self.branch.problem.main_window.update_branch_list(new_idx)
@@ -131,10 +149,9 @@ class Canvas(QWidget):
         button_layout.addWidget(self.count_label)
         default_font = self.count_label.font()
         font_metrics = QFontMetrics(default_font)
-        new_font_size = 1 * font_metrics.height() # 若干倍的默认字号，后续可以调整
+        new_font_size = 1 * font_metrics.height()  # 若干倍的默认字号，后续可以调整
         new_font = QFont(default_font.family(), new_font_size)
         self.count_label.setFont(new_font)
-
 
         # 创建一个QCheckBox
         self.toggle_button = QCheckBox("未完成", self)
@@ -144,16 +161,14 @@ class Canvas(QWidget):
 
         button_layout.addWidget(self.toggle_button)
 
-
-
         # Create Buttons
         buttons_info = [
-            ('Reset Status', self.reset_status),
-            ('Toggle Drawing', self.toggle_drawing),
-            ('Choose Other Color', self.choose_color),
-            ('Delete Branch', self.delete_branch),
-            ('Copy Branch', self.copy_branch),
-            ('Check Branch', self.check_branch)
+            ("Reset Status", self.reset_status),
+            ("Toggle Drawing", self.toggle_drawing),
+            ("Choose Other Color", self.choose_color),
+            ("Delete Branch", self.delete_branch),
+            ("Copy Branch", self.copy_branch),
+            ("Check Branch", self.check_branch),
         ]
 
         for text, callback in buttons_info:
@@ -165,11 +180,13 @@ class Canvas(QWidget):
         for i in range(len(Canvas.color_buttons_info)):
             color_name, color_code = Canvas.color_buttons_info[i]
             color_button = QPushButton(self)
-            color_button.setStyleSheet(f'background-color: {color_code};')
+            color_button.setStyleSheet(f"background-color: {color_code};")
             # color_button.setMaximumWidth(20)  # 设置按钮宽度
             # color_button.setMaximumHeight(20) # 设置按钮高度
             button_layout.addWidget(color_button)
-            color_button.clicked.connect(lambda _, color_index = i: self.set_color(color_index))
+            color_button.clicked.connect(
+                lambda _, color_index=i: self.set_color(color_index)
+            )
 
         # Get Cursor Size
         cursor_bitmap = QCursor().bitmap()
@@ -186,13 +203,15 @@ class Canvas(QWidget):
 
     def refresh_display(self):
         # 将绘图图层叠加在背景图像上并显示
-        combined_pixmap= self.background_pixmap.copy()
-        painter= QPainter(combined_pixmap)
+        combined_pixmap = self.background_pixmap.copy()
+        painter = QPainter(combined_pixmap)
         painter.drawPixmap(0, 0, self.mine_layer)
         painter.drawPixmap(0, 0, self.drawing_layer)
         painter.end()
         self.label.setPixmap(combined_pixmap)
-        self.count_label.setText(f'🚩  <font color="red">{np.count_nonzero(self.branch.mines):02}</font>    <font color="green">?  {np.count_nonzero(self.branch.safe):02}</font>')
+        self.count_label.setText(
+            f'🚩  <font color="red">{np.count_nonzero(self.branch.mines):02}</font>    <font color="green">?  {np.count_nonzero(self.branch.safe):02}</font>'
+        )
 
     def on_toggle_button_state_changed(self, state):
         # 根据QCheckBox的状态更新显示的文本
@@ -213,7 +232,7 @@ class Canvas(QWidget):
             color_code = Canvas.other_color
         else:
             color_code = Canvas.color_buttons_info[color_index][1]
-        Canvas.color_index=color_index
+        Canvas.color_index = color_index
         color = QColor(color_code)
         Canvas.pen.setColor(color)
         palette = self.color_label.palette()
@@ -222,19 +241,22 @@ class Canvas(QWidget):
 
     def mouseMoveEvent(self, event):
         now_pos = self.get_scaled_position(event)
-        painter= QPainter(self.drawing_layer)
+        painter = QPainter(self.drawing_layer)
 
         if Canvas.is_drawing:
             if event.buttons() & Qt.LeftButton and Canvas.last_point is not None:
                 painter.setPen(Canvas.pen)
                 painter.drawLine(Canvas.last_point, now_pos)
-            elif event.buttons() & Qt.RightButton and Canvas.last_point is not None:  # 检测是否按下右键
+            elif (
+                event.buttons() & Qt.RightButton and Canvas.last_point is not None
+            ):  # 检测是否按下右键
                 painter.setCompositionMode(
-                    QPainter.CompositionMode_Clear)  # 设置为擦除模式
+                    QPainter.CompositionMode_Clear
+                )  # 设置为擦除模式
                 painter.setPen(Canvas.eraser)
                 painter.drawLine(Canvas.last_point, now_pos)
 
-        Canvas.last_point= now_pos
+        Canvas.last_point = now_pos
         painter.end()
 
         self.refresh_display()
@@ -244,13 +266,13 @@ class Canvas(QWidget):
             return
         if Canvas.color_index == -1:
             return
-        times = abs(event.angleDelta().y()) // 120 # 换鼠标之后这个可能失效
+        times = abs(event.angleDelta().y()) // 120  # 换鼠标之后这个可能失效
         if event.angleDelta().y() > 0:
             # 鼠标向上滚动
             for i in range(times):
                 Canvas.color_index -= 1
                 if Canvas.color_index == -1:
-                    Canvas.color_index = len(Canvas.color_buttons_info)-1
+                    Canvas.color_index = len(Canvas.color_buttons_info) - 1
         else:
             # 鼠标向下滚动
             for i in range(times):
@@ -310,17 +332,23 @@ class Canvas(QWidget):
             scale_h = self.background_pixmap.height() / self.label.height()
             Canvas.last_point = QPoint(
                 event.pos().x() * scale_w - self.cursor_size // 2,
-                event.pos().y() * scale_h - self.cursor_size // 2
+                event.pos().y() * scale_h - self.cursor_size // 2,
             )
+
     def mouseReleaseEvent(self, event):
 
         # Clear the last point position
         if event.button() in (Qt.LeftButton, Qt.RightButton, Qt.MiddleButton):
 
             Canvas.last_point = None
-            if not Canvas.is_drawing and self.estimated_n!=0:
+            if not Canvas.is_drawing and self.estimated_n != 0:
                 now_pos = self.get_scaled_position(event)
-                x1, y1, x2, y2 = self.large_square_position[0], self.large_square_position[1], self.large_square_position[0] + self.large_square_position[2], self.large_square_position[1] + self.large_square_position[3]
+                x1, y1, x2, y2 = (
+                    self.large_square_position[0],
+                    self.large_square_position[1],
+                    self.large_square_position[0] + self.large_square_position[2],
+                    self.large_square_position[1] + self.large_square_position[3],
+                )
 
                 if x1 <= now_pos.x() < x2 and y1 <= now_pos.y() < y2:
 
@@ -350,15 +378,21 @@ class Canvas(QWidget):
             cell_height = self.large_square_position[3] / self.estimated_n
 
             # 计算icon的中心坐标
-            icon_x = self.large_square_position[0] + cell_x * cell_width + cell_width / 2
-            icon_y = self.large_square_position[1] + cell_y * cell_height + cell_height / 2
+            icon_x = (
+                self.large_square_position[0] + cell_x * cell_width + cell_width / 2
+            )
+            icon_y = (
+                self.large_square_position[1] + cell_y * cell_height + cell_height / 2
+            )
 
             # 创建一个 QPainter 对象
             painter = QPainter(self.mine_layer)
 
             # 将icon绘制到中心位置，假设icon的大小为 icon_size x icon_size
             icon_size = min(cell_width, cell_height) * 1.3  # 调整图标的大小以适应单元格
-            icon = icon.scaled(icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)  # 调整图标大小
+            icon = icon.scaled(
+                icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
+            )  # 调整图标大小
 
             # 将icon绘制到中心位置
             painter.drawPixmap(icon_x - icon_size / 2, icon_y - icon_size / 2, icon)
@@ -385,8 +419,6 @@ class Canvas(QWidget):
             painter.eraseRect(QRectF(icon_x, icon_y, cell_width, cell_height))
             painter.end()
             self.refresh_display()
-
-
 
     def get_scaled_position(self, event):
         """
@@ -429,7 +461,7 @@ class Canvas(QWidget):
     def reset_status(self):
         self.branch.problem.reset_finished()
 
-    def copy_from(self, other_canvas):###
+    def copy_from(self, other_canvas):  ###
         self.drawing_layer = other_canvas.drawing_layer.copy()
         self.mine_layer = other_canvas.mine_layer.copy()
         palette = self.color_label.palette()

@@ -62,17 +62,15 @@ class Branch:
         for i in range(self.problem.rows):
             for j in range(self.problem.columns):
                 if all_is_mine[i][j]:
-                    self.canvas.draw_icon_in_cell(
-                        i, j, self.canvas.choose_icon)
+                    self.canvas.draw_icon_in_cell(i, j, self.canvas.choose_icon)
                     flag = False
                     logprint(f"({i},{j})是雷", "info")
                 elif all_is_safe[i][j]:
-                    self.canvas.draw_icon_in_cell(
-                        i, j, self.canvas.choose_icon)
+                    self.canvas.draw_icon_in_cell(i, j, self.canvas.choose_icon)
                     flag = False
                     logprint(f"({i},{j})是非雷", "info")
         if flag:
-            logprint("未找到确定的解", level='info')
+            logprint("未找到确定的解", level="info")
 
     def middle_click(self, row, col):
         if self.mines[row][col] or self.safe[row][col]:
@@ -89,4 +87,4 @@ class Branch:
         for ret in range(len(self.problem.branches)):
             if self.problem.branches[ret] is self:
                 return ret
-        return -1 # Not in list
+        return -1  # Not in list
