@@ -4,11 +4,20 @@ from PIL import ImageGrab
 import sys, os, datetime
 import argparse
 
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Capture and process a screenshot.")
-    parser.add_argument('--from_screen', action='store_true', help='Capture screenshot from screen.')
-    parser.add_argument('--grid', default='auto', choices=['auto', 'no_grid', 'manual'], help='Grid mode: auto (default), no_grid, or manual.')
+    parser.add_argument(
+        "--from_screen", action="store_true", help="Capture screenshot from screen."
+    )
+    parser.add_argument(
+        "--grid",
+        default="auto",
+        choices=["auto", "no_grid", "manual"],
+        help="Grid mode: auto (default), no_grid, or manual.",
+    )
     return parser.parse_args()
+
 
 def main():
     args = parse_args()
@@ -18,7 +27,7 @@ def main():
     if args.from_screen:
         grid = args.grid
         now = datetime.datetime.now()
-        folder_path = r'C:\Users\19000\OneDrive - 北京大学\图片\屏幕截图'
+        folder_path = r"C:\Users\19000\OneDrive - 北京大学\图片\屏幕截图"
         screenshot = ImageGrab.grab()
         screenshot_file_name = rf'屏幕截图 {now.strftime("%Y-%m-%d %H%M%S")}.png'
         screenshot_path = os.path.join(folder_path, screenshot_file_name)
@@ -34,5 +43,5 @@ def main():
     sys.exit(app.exec_())
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
