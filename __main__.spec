@@ -31,9 +31,11 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=True, 
+          console=True,
           disable_windowed_traceback=False,
           argv_emulation=False,
           target_arch=None,
           codesign_identity=None,
-          entitlements_file=None)
+          entitlements_file=None,
+          icon='img/icon.ico'
+          )

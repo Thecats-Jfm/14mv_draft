@@ -6,3 +6,5 @@ tests
 temp*.*
 14mv_draft.egg-info
 .exe
+dist
+*.spec
