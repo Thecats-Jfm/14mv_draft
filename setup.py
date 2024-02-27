@@ -9,7 +9,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            '14mvd=14mv_draft.__main__:main', # 假设main函数在your_package/main.py中
+            '14mvd=mv_draft.__main__:main', # 假设main函数在your_package/main.py中
         ],
     },
 )
