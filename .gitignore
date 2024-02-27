@@ -5,3 +5,6 @@ tests
 *.json
 temp*.*
 14mv_draft.egg-info
+.exe
+*.spec
+*.zip
