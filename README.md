@@ -32,9 +32,42 @@
 - 克隆仓库：`git clone https://github.com/Thecats-Jfm/14mv_draft.git`
 - 安装依赖：`pip install -e .`
 
-# 启动程序
+## 使用 Conda 的详细步骤
+
+1. **创建 Conda 环境**：
+    ```bash
+    conda create --name 14mvd_env python=3.7
+    ```
+
+    这将创建一个名为 `14mvd_env` 的 Conda 环境，并安装 Python 3.7。
+
+2. **激活 Conda 环境**：
+    ```bash
+    conda activate 14mvd_env
+    ```
+
+3. **克隆仓库**：
+    ```bash
+    git clone https://github.com/Thecats-Jfm/14mv_draft.git
+    ```
+
+4. **进入项目目录**：
+    ```bash
+    cd 14mv_draft
+    ```
+
+5. **安装依赖**：
+    ```bash
+    pip install -e .
+    ```
+
+## 启动程序
 
 通过命令行运行 `14mvd` 即可启动程序。
+
+```bash
+14mvd
+```
 
 # 注意事项
 
