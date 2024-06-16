@@ -1,0 +1,5 @@
+numpy
+opencv_python
+Pillow
+PyQt5==5.12
+setuptools

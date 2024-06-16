@@ -32,9 +32,42 @@ These shortcuts allow you to perform related actions through the keyboard while 
 - Clone the repository: `git clone https://github.com/Thecats-Jfm/14mv_draft.git`
 - Install dependencies: `pip install -e .`
 
-# Starting the Program
+## Detailed Steps with Conda
+
+1. **Create a Conda Environment**:
+    ```bash
+    conda create --name 14mvd_env python=3.7
+    ```
+
+    This creates a new Conda environment named `14mvd_env` with Python version 3.7.
+
+2. **Activate the Conda Environment**:
+    ```bash
+    conda activate 14mvd_env
+    ```
+
+3. **Clone the Repository**:
+    ```bash
+    git clone https://github.com/Thecats-Jfm/14mv_draft.git
+    ```
+
+4. **Navigate to the Project Directory**:
+    ```bash
+    cd 14mv_draft
+    ```
+
+5. **Install Dependencies**:
+    ```bash
+    pip install -e .
+    ```
+
+## Starting the Program
 
 Run `14mvd` from the command line to start the program.
+
+```bash
+14mvd
+```
 
 # Notes
 
