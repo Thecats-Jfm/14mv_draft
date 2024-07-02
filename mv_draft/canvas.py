@@ -331,8 +331,8 @@ class Canvas(QWidget):
             scale_w = self.background_pixmap.width() / self.label.width()
             scale_h = self.background_pixmap.height() / self.label.height()
             Canvas.last_point = QPoint(
-                event.pos().x() * scale_w - self.cursor_size // 2,
-                event.pos().y() * scale_h - self.cursor_size // 2,
+                round(event.pos().x() * scale_w - self.cursor_size // 2),
+                round(event.pos().y() * scale_h - self.cursor_size // 2),
             )
 
     def mouseReleaseEvent(self, event):
@@ -389,13 +389,13 @@ class Canvas(QWidget):
             painter = QPainter(self.mine_layer)
 
             # 将icon绘制到中心位置，假设icon的大小为 icon_size x icon_size
-            icon_size = min(cell_width, cell_height) * 1.3  # 调整图标的大小以适应单元格
+            icon_size = round(min(cell_width, cell_height) * 1.3)  # 调整图标的大小以适应单元格
             icon = icon.scaled(
                 icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
             )  # 调整图标大小
 
             # 将icon绘制到中心位置
-            painter.drawPixmap(icon_x - icon_size / 2, icon_y - icon_size / 2, icon)
+            painter.drawPixmap(round(icon_x - icon_size / 2), round(icon_y - icon_size / 2), icon)
             painter.end()
             self.refresh_display()
 
@@ -426,8 +426,8 @@ class Canvas(QWidget):
         """
         scale_width = self.background_pixmap.width() / self.label.width()
         scale_height = self.background_pixmap.height() / self.label.height()
-        scaled_x = event.pos().x() * scale_width - self.cursor_size // 2
-        scaled_y = event.pos().y() * scale_height - self.cursor_size // 2
+        scaled_x = round(event.pos().x() * scale_width - self.cursor_size // 2)
+        scaled_y = round(event.pos().y() * scale_height - self.cursor_size // 2)
         return QPoint(scaled_x, scaled_y)
 
     def choose_color(self):
