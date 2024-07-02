@@ -317,9 +317,9 @@ class Canvas(QWidget):
             # Draw grid
             for i in range(n + 1):
                 # Draw horizontal lines
-                painter.drawLine(x1, y1 + i * cell_height, x2, y1 + i * cell_height)
+                painter.drawLine(x1, round(y1 + i * cell_height), x2, round(y1 + i * cell_height))
                 # Draw vertical lines
-                painter.drawLine(x1 + i * cell_width, y1, x1 + i * cell_width, y2)
+                painter.drawLine(round(x1 + i * cell_width), y1, round(x1 + i * cell_width), y2)
 
             # End drawing
             painter.end()
