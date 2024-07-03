@@ -286,14 +286,14 @@ class Canvas(QWidget):
             return
         if Canvas.color_index == -1:
             return
-        
-        times = abs(event.angleDelta().y()) // 120 
+
+        times = abs(event.angleDelta().y()) // 120
         if event.angleDelta().y() > 0:
             # 鼠标向上滚动
             for i in range(times):
                 Canvas.color_index -= 1
                 if Canvas.color_index == -1:
-                    Canvas.color_index = len(Canvas.color_buttons_info)-1
+                    Canvas.color_index = len(Canvas.color_buttons_info) - 1
         else:
             # 鼠标向下滚动
             for i in range(times):
@@ -301,7 +301,6 @@ class Canvas(QWidget):
                 if Canvas.color_index == len(Canvas.color_buttons_info):
                     Canvas.color_index = 0
         self.set_color(Canvas.color_index)
-
 
     def init_grid(self):
         if self.estimated_n != 0:
