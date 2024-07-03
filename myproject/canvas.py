@@ -70,22 +70,28 @@ class Canvas(QWidget):
             self.check_branch()
         elif event.key() == Qt.Key_C:
             self.copy_branch()
-        elif event.key() == Qt.Key_Delete:
+        elif event.key() == Qt.Key_Delete or event.key() == Qt.Key_Escape:
             self.delete_branch()
         elif event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
             self.on_toggle_button_state_changed(not self.finished)
         elif event.key() == Qt.Key_N:
             self.reset_status()
         elif event.key() == Qt.Key_Up:
-            new_idx = self.branch.problem.main_window.branch_list.currentRow()-1
-            if new_idx == -1:
-                new_idx = len(self.branch.problem.main_window.branch_list)-1
-            self.branch.problem.main_window.update_branch_list(new_idx)
+            self.move_to_previous_branch()
         elif event.key() == Qt.Key_Down:
-            new_idx = self.branch.problem.main_window.branch_list.currentRow()+1
-            if new_idx == len(self.branch.problem.main_window.branch_list):
-                new_idx = 0
-            self.branch.problem.main_window.update_branch_list(new_idx)
+            self.move_to_next_branch()
+
+    def move_to_previous_branch(self):
+        new_idx = self.branch.problem.main_window.branch_list.currentRow() - 1
+        if new_idx == -1:
+            new_idx = len(self.branch.problem.main_window.branch_list) - 1
+        self.branch.problem.main_window.update_branch_list(new_idx)
+
+    def move_to_next_branch(self):
+        new_idx = self.branch.problem.main_window.branch_list.currentRow() + 1
+        if new_idx == len(self.branch.problem.main_window.branch_list):
+            new_idx = 0
+        self.branch.problem.main_window.update_branch_list(new_idx)
 
     def init_ui(self):
         # Initialize Layout
@@ -240,11 +246,26 @@ class Canvas(QWidget):
         self.refresh_display()
 
     def wheelEvent(self, event):
+        # 换鼠标之后具体数值可能会改变
+
+        # 左右方向
+        times = abs(event.angleDelta().x()) // 480
+        if event.angleDelta().x() > 0:
+            # 鼠标向左滚动
+            for i in range(times):
+                self.move_to_previous_branch()
+        else:
+            # 鼠标向右滚动
+            for i in range(times):
+                self.move_to_next_branch()
+
+        # 上下方向
         if not Canvas.is_drawing:
             return
         if Canvas.color_index == -1:
             return
-        times = abs(event.angleDelta().y()) // 120 # 换鼠标之后这个可能失效
+        
+        times = abs(event.angleDelta().y()) // 120 
         if event.angleDelta().y() > 0:
             # 鼠标向上滚动
             for i in range(times):
@@ -258,6 +279,8 @@ class Canvas(QWidget):
                 if Canvas.color_index == len(Canvas.color_buttons_info):
                     Canvas.color_index = 0
         self.set_color(Canvas.color_index)
+
+        
 
     def init_grid(self):
         if self.estimated_n != 0:
