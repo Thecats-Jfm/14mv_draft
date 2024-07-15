@@ -32,7 +32,8 @@ class Problem:
 
             # 使用OpenCV的imdecode函数从字节解码图像
             image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
-            self.large_square_position, self.estimated_n, self.test_n_scores = (
+
+            self.large_square_position_list, self.estimated_n, self.test_n_scores = (
                 detect_squares(image)
             )
 
@@ -41,7 +42,10 @@ class Problem:
             logprint(f"Estimated n: {self.estimated_n}", "debug")
             logprint(f"n scores: {self.test_n_scores}", "debug")
             logprint(
-                message=f"加载题目完成，尺寸={self.estimated_n}x{self.estimated_n}",
+                f"Number of squares: {len(self.large_square_position_list)}", "debug"
+            )
+            logprint(
+                message=f"加载题目完成，尺寸={self.estimated_n}x{self.estimated_n},题板数量={len(self.large_square_position_list)}",
                 level="info",
             )
 
@@ -51,6 +55,7 @@ class Problem:
             self.large_square_position = None
             logprint("加载题目完成，无网格", "info")
         elif grid == "manual":
+            logprint("暂未实现手动网格", "warning")
             # temp
             text, ok = QInputDialog.getText(None, "Input Dialog", "n:")
             self.estimated_n = int(text)
@@ -110,7 +115,7 @@ class Problem:
         self.name_branches[branch_name] = branch
         return branch
 
-    def middle_click(self, branch, col, row):
+    def middle_click(self, branch, col, row, idx=0):
         branch.canvas.copy_branch()
         branch.canvas.copy_branch()
         idx = branch.index_in_list()
