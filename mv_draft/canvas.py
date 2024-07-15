@@ -397,7 +397,9 @@ class Canvas(QWidget):
             )  # 调整图标大小
 
             # 将icon绘制到中心位置
-            painter.drawPixmap(icon_x - icon.width() // 2, icon_y - icon.height() // 2, icon)
+            painter.drawPixmap(
+                icon_x - icon.width() // 2, icon_y - icon.height() // 2, icon
+            )
             painter.end()
             self.refresh_display()
 

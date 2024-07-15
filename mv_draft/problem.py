@@ -33,7 +33,7 @@ class Problem:
             # 使用OpenCV的imdecode函数从字节解码图像
             image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-            self.large_square_position_list,self.estimated_n, self.test_n_scores = (
+            self.large_square_position_list, self.estimated_n, self.test_n_scores = (
                 detect_squares(image)
             )
 
@@ -41,7 +41,9 @@ class Problem:
             # logprint(f"Large Square Position: {self.large_square_position}", "debug")
             logprint(f"Estimated n: {self.estimated_n}", "debug")
             logprint(f"n scores: {self.test_n_scores}", "debug")
-            logprint(f"Number of squares: {len(self.large_square_position_list)}", "debug")
+            logprint(
+                f"Number of squares: {len(self.large_square_position_list)}", "debug"
+            )
             logprint(
                 message=f"加载题目完成，尺寸={self.estimated_n}x{self.estimated_n},题板数量={len(self.large_square_position_list)}",
                 level="info",
@@ -63,7 +65,7 @@ class Problem:
                 491 * self.estimated_n // 7,
                 515 * self.estimated_n // 7,
             )
-            
+
         # Initialize main branch
         self.columns = self.estimated_n
         self.rows = self.estimated_n
