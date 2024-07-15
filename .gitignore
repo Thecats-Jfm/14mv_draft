@@ -1,11 +1,23 @@
-__pycache__
-build
-.gitignore
-tests
-*.json
-temp*.*
-14mv_draft.egg-info
-dist
-.exe
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Distribution / packaging
+build/
+dist/
+14mv_draft.egg-info/
+
+# PyInstaller
 *.spec
+*.exe
+
+# JSON files (if not needed for version control)
+*.json
+
+# Temporary files
+temp*.*
 *.zip
+
+
+
+Tests directory (optional, if you want to exclude test files)
+tests/
