@@ -120,7 +120,7 @@ class MainWindow(QMainWindow):
         self.splitter.setSizes([50, 1100])
 
         Canvas.is_drawing = not Canvas.is_drawing
-        self.canvas.toggle_drawing()  # 更改鼠标样式为正确
+        self.canvas.toggle_drawing()  # 再触发一次反转
         self.canvas.set_color(Canvas.color_index)
 
         self.canvas.setFocus()

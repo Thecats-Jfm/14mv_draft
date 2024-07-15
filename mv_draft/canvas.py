@@ -388,14 +388,16 @@ class Canvas(QWidget):
             # 创建一个 QPainter 对象
             painter = QPainter(self.mine_layer)
 
-            # 将icon绘制到中心位置，假设icon的大小为 icon_size x icon_size
-            icon_size = min(cell_width, cell_height) * 1.3  # 调整图标的大小以适应单元格
+            # 将icon绘制到中心位置
+            icon_size = min(cell_width, cell_height) * 1.2  # 调整图标的大小以适应单元格
+            icon_width = icon.width()
+            icon_height = icon.height()
             icon = icon.scaled(
                 icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation
             )  # 调整图标大小
 
             # 将icon绘制到中心位置
-            painter.drawPixmap(icon_x - icon_size / 2, icon_y - icon_size / 2, icon)
+            painter.drawPixmap(icon_x - icon.width() // 2, icon_y - icon.height() // 2, icon)
             painter.end()
             self.refresh_display()
 
