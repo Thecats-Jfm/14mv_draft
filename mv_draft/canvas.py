@@ -24,6 +24,7 @@ from .utils import logprint, MySplitter
 import numpy as np
 from copy import deepcopy
 
+
 class Canvas(QWidget):
     is_drawing = False
     color_index = 3
@@ -409,12 +410,8 @@ class Canvas(QWidget):
             cell_height = position[3] / size
 
             # 计算icon的中心坐标
-            icon_x = (
-                position[0] + cell_x * cell_width + cell_width / 2
-            )
-            icon_y = (
-                position[1] + cell_y * cell_height + cell_height / 2
-            )
+            icon_x = position[0] + cell_x * cell_width + cell_width / 2
+            icon_y = position[1] + cell_y * cell_height + cell_height / 2
 
             # 创建一个 QPainter 对象
             painter = QPainter(self.mine_layer)

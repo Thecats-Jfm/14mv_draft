@@ -86,7 +86,12 @@ def find_grids(binary_image):
             # 获取边界矩形的位置和大小
             x, y, w, h = cv2.boundingRect(contour)
             # 排除位于图像边缘的轮廓
-            if x < 10 or y < 10 or x + w > binary_image.shape[1] - 10 or y + h > binary_image.shape[0] - 10:
+            if (
+                x < 10
+                or y < 10
+                or x + w > binary_image.shape[1] - 10
+                or y + h > binary_image.shape[0] - 10
+            ):
                 continue
 
             area = w * h
@@ -105,20 +110,23 @@ def find_grids(binary_image):
         largest_square_contours.pop()
 
     # 计算每个正方形的边界框
-    large_square_positions = [cv2.boundingRect(contour) for contour in largest_square_contours]
+    large_square_positions = [
+        cv2.boundingRect(contour) for contour in largest_square_contours
+    ]
 
     # 确保左侧的网格为1号网格，根据x坐标进行排序
     large_square_positions.sort(key=lambda pos: pos[0])
 
-    #绘制并展示
+    # 绘制并展示
     # for pos in large_square_positions:
-        # x, y, w, h = pos
-        # cv2.rectangle(binary_image, (x, y), (x + w, y + h), 200, 10)
+    # x, y, w, h = pos
+    # cv2.rectangle(binary_image, (x, y), (x + w, y + h), 200, 10)
     # cv2.imshow("binary_image", binary_image)
     # cv2.waitKey(0)
 
     # 返回每个网格的位置和大小
     return large_square_positions
+
 
 def estimate_n(large_square_position, contours, image_shape):
     # 解压大正方形的位置和大小
@@ -140,9 +148,12 @@ def estimate_n(large_square_position, contours, image_shape):
             x, y, w, h = cv2.boundingRect(contour)
 
             # 检查这个矩形是否在大正方形内部
-            if large_square_position[0] < x and large_square_position[1] < y and \
-               large_square_position[0] + large_square_position[2] > x + w and \
-               large_square_position[1] + large_square_position[3] > y + h:
+            if (
+                large_square_position[0] < x
+                and large_square_position[1] < y
+                and large_square_position[0] + large_square_position[2] > x + w
+                and large_square_position[1] + large_square_position[3] > y + h
+            ):
                 area = w * h
                 # 过滤掉面积小于100的区域
                 if area < 100:
@@ -172,7 +183,8 @@ def estimate_n(large_square_position, contours, image_shape):
     # 返回估计的网格大小和得分
     return estimated_n, test_n_scores
 
-def detect_squares(image, DEBUG = False):
+
+def detect_squares(image, DEBUG=False):
     # DEBUG = True
     """目前只支持预设配色1与粉白配色,参见img/pink_white.png与img/set1.png"""
 
@@ -192,7 +204,6 @@ def detect_squares(image, DEBUG = False):
         _, binary_image = cv2.threshold(
             gray_image, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU
         )
-
 
     large_square_positions = find_grids(binary_image)
     contours, _ = cv2.findContours(binary_image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -216,7 +227,6 @@ def detect_squares(image, DEBUG = False):
         print("Large Square Position:", large_square_positions)
         print("Estimated n:", n_list)
         print("n scores:", scores_list)
-
 
         cv2.waitKey(0)
         cv2.destroyAllWindows()

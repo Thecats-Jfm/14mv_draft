@@ -7,7 +7,6 @@ from PyQt5.QtWidgets import QInputDialog
 from copy import deepcopy
 
 
-
 class Problem:
     def __init__(self, main_window):
         self.branches = []
@@ -18,7 +17,6 @@ class Problem:
         self.question_board_cnt = 0
         self.question_board_positions = []
         self.question_board_sizes = []
-
 
     def load_from_image(self, image_path, grid="auto"):
         """grid: auto; no_grid; manual"""
@@ -37,9 +35,11 @@ class Problem:
             # 使用OpenCV的imdecode函数从字节解码图像
             image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-            self.question_board_positions, self.question_board_sizes, self.test_scores = (
-                detect_squares(image)
-            )
+            (
+                self.question_board_positions,
+                self.question_board_sizes,
+                self.test_scores,
+            ) = detect_squares(image)
             self.question_board_size0 = self.question_board_sizes[0]
             # Log details
             # logprint(f"Large Square Position: {self.large_square_position}", "debug")

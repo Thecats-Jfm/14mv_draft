@@ -3,6 +3,7 @@ from .utils import logprint
 import numpy as np
 from copy import deepcopy
 
+
 class QuestionBoard:
     def __init__(self, idx, n, branch):
         self.n = n
@@ -23,7 +24,7 @@ class QuestionBoard:
             return
         if self.mines[row][col] == False:
             self.mines[row][col] = True
-            self.branch.draw_icon_in_cell(self.idx, row, col, 'mine')
+            self.branch.draw_icon_in_cell(self.idx, row, col, "mine")
             # logprint(f"({row},{col})标记为雷","debug")
             return
 
@@ -39,7 +40,7 @@ class QuestionBoard:
             return
         if self.safe[row][col] == False:
             self.safe[row][col] = True
-            self.branch.draw_icon_in_cell(self.idx, row, col, 'safe')
+            self.branch.draw_icon_in_cell(self.idx, row, col, "safe")
             # logprint(f"({row},{col})标记为非雷","debug")
             return
 
@@ -53,6 +54,7 @@ class QuestionBoard:
         self.mines = deepcopy(qb.mines)
         self.safe = deepcopy(qb.safe)
 
+
 class Branch:
     def __init__(self, problem, name: str):
         self.problem = problem
@@ -60,48 +62,54 @@ class Branch:
         self.name = name
         self.question_board_positions = problem.question_board_positions
         self.question_board_sizes = problem.question_board_sizes
-        self.question_boards = [QuestionBoard(i, n, self) for i, n in enumerate(self.question_board_sizes)]
+        self.question_boards = [
+            QuestionBoard(i, n, self) for i, n in enumerate(self.question_board_sizes)
+        ]
         self.finished = False
 
         self.canvas = Canvas(self)
 
     def draw_icon_in_cell(self, idx, cell_x, cell_y, icon):
-        if idx==0:
-            if icon=='mine':
+        if idx == 0:
+            if icon == "mine":
                 icon = self.canvas.mine_icon
-            elif icon=='safe':
+            elif icon == "safe":
                 icon = self.canvas.safe_icon
-        elif idx==1:
-            if icon=='mine':
+        elif idx == 1:
+            if icon == "mine":
                 icon = self.canvas.circle_icon
-            elif icon=='safe':
+            elif icon == "safe":
                 icon = self.canvas.cross_icon
         self.canvas.draw_icon_in_cell(idx, cell_x, cell_y, icon)
+
     def clear_icon_in_cell(self, idx, cell_x, cell_y):
         self.canvas.clear_icon_in_cell(idx, cell_x, cell_y)
 
     def cnt_flags(self):
         return np.count_nonzero(self.question_boards[0].mines)
+
     def cnt_safes(self):
         return np.count_nonzero(self.question_boards[0].safe)
 
     def mark_mine(self, idx, row, col):
         return self.question_boards[idx].mark_mine(row, col)
+
     def mark_safe(self, idx, row, col):
         return self.question_boards[idx].mark_safe(row, col)
+
     def middle_click(self, idx, row, col):
         return self.question_boards[idx].middle_click(row, col)
 
-
     def delete_branch(self):
         self.problem.delete_branch(self)
+
     def copy_branch(self):
         self.problem.copy_branch(self)
 
     def check_branch(self):
         flag = True
 
-        for idx,qb in enumerate(self.question_boards):
+        for idx, qb in enumerate(self.question_boards):
 
             all_is_mine = [row[:] for row in qb.mines]
             all_is_safe = [row[:] for row in qb.safe]
@@ -116,21 +124,23 @@ class Branch:
             for i in range(qb.n):
                 for j in range(qb.n):
                     if all_is_mine[i][j]:
-                        self.canvas.draw_icon_in_cell(idx, i, j, self.canvas.choose_icon)
+                        self.canvas.draw_icon_in_cell(
+                            idx, i, j, self.canvas.choose_icon
+                        )
                         flag = False
                         # logprint(f"({i},{j})是雷", "info")
                     elif all_is_safe[i][j]:
-                        self.canvas.draw_icon_in_cell(idx, i, j, self.canvas.choose_icon)
+                        self.canvas.draw_icon_in_cell(
+                            idx, i, j, self.canvas.choose_icon
+                        )
                         flag = False
                         # logprint(f"({i},{j})是非雷", "info")
         if flag:
             logprint("未找到确定的解", level="info")
 
-
-
     def copy_from(self, branch):
         self.finished = branch.finished
-        for i,qb in enumerate(self.question_boards):
+        for i, qb in enumerate(self.question_boards):
             qb.copy_from(branch.question_boards[i])
 
         self.canvas.copy_from(branch.canvas)

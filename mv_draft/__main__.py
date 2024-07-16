@@ -17,7 +17,10 @@ def parse_args():
         help="Grid mode: auto (default), no_grid, or manual.",
     )
     parser.add_argument(
-        "--from_file", nargs="?", type = str, help="Load screenshot from file.",
+        "--from_file",
+        nargs="?",
+        type=str,
+        help="Load screenshot from file.",
     )
     return parser.parse_args()
 
