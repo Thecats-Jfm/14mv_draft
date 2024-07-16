@@ -22,7 +22,7 @@ from PyQt5.QtGui import (
 from PyQt5.QtCore import Qt, QPoint, QSize, QRectF
 from .utils import logprint, MySplitter
 import numpy as np
-
+from copy import deepcopy
 
 class Canvas(QWidget):
     is_drawing = False
@@ -50,7 +50,7 @@ class Canvas(QWidget):
         self.branch = branch
         self.canvas_height = 800
         self.canvas_width = 1200
-        self.finished = False
+        self.grided = True
 
         background_pixmap = self.branch.problem.background_pixmap
         self.background_pixmap = background_pixmap.scaled(
@@ -59,22 +59,25 @@ class Canvas(QWidget):
         self.image_height = background_pixmap.height()
         self.image_width = background_pixmap.width()
 
-        self.estimated_n = self.branch.problem.estimated_n
+        self.question_board_positions = []
+        self.question_board_sizes = self.branch.question_board_sizes
 
         # logprint(f"Image Size: {self.image_width} x {self.image_height}")
         # logprint(f"Canvas Size: {self.canvas_width} x {self.canvas_height}")
-        if self.branch.problem.estimated_n != 0:
-            position = self.branch.problem.large_square_position
-            self.large_square_position = [
-                round(position[0] * self.canvas_width / self.image_width),
-                round(position[1] * self.canvas_height / self.image_height),
-                round(position[2] * self.canvas_width / self.image_width),
-                round(position[3] * self.canvas_height / self.image_height),
-            ]
-
+        for position in self.branch.question_board_positions:
+            self.question_board_positions.append(
+                [
+                    round(position[0] * self.canvas_width / self.image_width),
+                    round(position[1] * self.canvas_height / self.image_height),
+                    round(position[2] * self.canvas_width / self.image_width),
+                    round(position[3] * self.canvas_height / self.image_height),
+                ]
+            )
             self.safe_icon = QIcon("img/safe.png").pixmap(QSize(100, 100))
             self.mine_icon = QIcon("img/mine.png").pixmap(QSize(100, 100))
             self.choose_icon = QIcon("img/choose.png").pixmap(QSize(100, 100))
+            self.circle_icon = QIcon("img/circle.svg").pixmap(QSize(100, 100))
+            self.cross_icon = QIcon("img/cross.svg").pixmap(QSize(100, 100))
 
         self.init_ui()
 
@@ -91,7 +94,7 @@ class Canvas(QWidget):
         elif event.key() == Qt.Key_Delete or event.key() == Qt.Key_Escape:
             self.delete_branch()
         elif event.key() == Qt.Key_Enter or event.key() == Qt.Key_Return:
-            self.on_toggle_button_state_changed(not self.finished)
+            self.on_toggle_button_state_changed(not self.branch.finished)
         elif event.key() == Qt.Key_N:
             self.reset_status()
         elif event.key() == Qt.Key_Up:
@@ -216,7 +219,7 @@ class Canvas(QWidget):
         painter.end()
         self.label.setPixmap(combined_pixmap)
         self.count_label.setText(
-            f'🚩  <font color="red">{np.count_nonzero(self.branch.mines):02}</font>    <font color="green">?  {np.count_nonzero(self.branch.safe):02}</font>'
+            f'🚩  <font color="red">{self.branch.cnt_flags():02}</font>    <font color="green">?  {self.branch.cnt_safes():02}</font>'
         )
 
     def on_toggle_button_state_changed(self, state):
@@ -224,9 +227,9 @@ class Canvas(QWidget):
         if state:
             self.toggle_button.setText("已完成")
             self.toggle_button.setChecked(True)
-            self.finished = True
+            self.branch.finished = True
         else:
-            self.finished = False
+            self.branch.finished = False
             self.toggle_button.setText("未完成")
             self.toggle_button.setChecked(False)
         self.branch.problem.main_window.update_branch_list(-2)
@@ -303,19 +306,22 @@ class Canvas(QWidget):
         self.set_color(Canvas.color_index)
 
     def init_grid(self):
-        if self.estimated_n != 0:
+        if self.grided == False:
+            return
+        for i, position in enumerate(self.question_board_positions):
+            print(i, position)
             # Calculate grid dimensions
-            width = self.large_square_position[2]
-            height = self.large_square_position[3]
-            x1 = self.large_square_position[0]
-            y1 = self.large_square_position[1]
+            width = position[2]
+            height = position[3]
+            x1 = position[0]
+            y1 = position[1]
             x2 = x1 + width
             y2 = y1 + height
 
             # logprint(f"width: {width}, height: {height}", level="debug")
 
             # Set the number of rows and columns for the n*n grid
-            n = self.estimated_n
+            n = self.question_board_sizes[i]
 
             # Create QPixmap object
             pixmap = self.background_pixmap
@@ -324,7 +330,7 @@ class Canvas(QWidget):
             painter = QPainter(pixmap)
 
             # Create and set QPen object
-            pen = QPen(Qt.cyan)  # Set color
+            pen = QPen(Qt.blue)  # Set pen color
             pen.setWidth(3)  # Set line width
             pen.setStyle(Qt.DashLine)  # Set dash line style
             painter.setPen(pen)
@@ -362,48 +368,52 @@ class Canvas(QWidget):
         if event.button() in (Qt.LeftButton, Qt.RightButton, Qt.MiddleButton):
 
             Canvas.last_point = None
-            if not Canvas.is_drawing and self.estimated_n != 0:
+            if not Canvas.is_drawing and self.grided:
                 now_pos = self.get_scaled_position(event)
-                x1, y1, x2, y2 = (
-                    self.large_square_position[0],
-                    self.large_square_position[1],
-                    self.large_square_position[0] + self.large_square_position[2],
-                    self.large_square_position[1] + self.large_square_position[3],
-                )
 
-                if x1 <= now_pos.x() < x2 and y1 <= now_pos.y() < y2:
+                for i, position in enumerate(self.question_board_positions):
+                    size = self.question_board_sizes[i]
+                    x1, y1, x2, y2 = (
+                        position[0],
+                        position[1],
+                        position[0] + position[2],
+                        position[1] + position[3],
+                    )
+                    if x1 <= now_pos.x() < x2 and y1 <= now_pos.y() < y2:
 
-                    # 计算每个单元格的宽度和高度
-                    cell_width = (x2 - x1) / self.estimated_n
-                    cell_height = (y2 - y1) / self.estimated_n
+                        # 计算每个单元格的宽度和高度
+                        cell_width = (x2 - x1) / size
+                        cell_height = (y2 - y1) / size
 
-                    # 计算now_pos坐标相对于矩形(x1, y1, x2, y2)的位置
-                    relative_x = now_pos.x() - x1
-                    relative_y = now_pos.y() - y1
+                        # 计算now_pos坐标相对于矩形(x1, y1, x2, y2)的位置
+                        relative_x = now_pos.x() - x1
+                        relative_y = now_pos.y() - y1
 
-                    # 计算now_pos坐标落在哪个单元格内
-                    cell_x = int(relative_x // cell_width)
-                    cell_y = int(relative_y // cell_height)
+                        # 计算now_pos坐标落在哪个单元格内
+                        cell_x = int(relative_x // cell_width)
+                        cell_y = int(relative_y // cell_height)
 
-                    if event.button() == Qt.LeftButton:
-                        self.branch.mark_safe(cell_x, cell_y)
-                    elif event.button() == Qt.RightButton:
-                        self.branch.mark_mine(cell_x, cell_y)
-                    elif event.button() == Qt.MiddleButton:
-                        self.branch.middle_click(cell_x, cell_y)
+                        if event.button() == Qt.LeftButton:
+                            self.branch.mark_safe(i, cell_x, cell_y)
+                        elif event.button() == Qt.RightButton:
+                            self.branch.mark_mine(i, cell_x, cell_y)
+                        elif event.button() == Qt.MiddleButton:
+                            self.branch.middle_click(i, cell_x, cell_y)
 
-    def draw_icon_in_cell(self, cell_x, cell_y, icon):
-        if self.estimated_n != 0:
+    def draw_icon_in_cell(self, idx, cell_x, cell_y, icon):
+        if self.grided:
             # 计算每个单元格的宽度和高度
-            cell_width = self.large_square_position[2] / self.estimated_n
-            cell_height = self.large_square_position[3] / self.estimated_n
+            position = self.question_board_positions[idx]
+            size = self.question_board_sizes[idx]
+            cell_width = position[2] / size
+            cell_height = position[3] / size
 
             # 计算icon的中心坐标
             icon_x = (
-                self.large_square_position[0] + cell_x * cell_width + cell_width / 2
+                position[0] + cell_x * cell_width + cell_width / 2
             )
             icon_y = (
-                self.large_square_position[1] + cell_y * cell_height + cell_height / 2
+                position[1] + cell_y * cell_height + cell_height / 2
             )
 
             # 创建一个 QPainter 对象
@@ -424,23 +434,19 @@ class Canvas(QWidget):
             painter.end()
             self.refresh_display()
 
-    def clear_icon_in_cell(self, cell_x, cell_y):
-        if self.estimated_n != 0:
-            # 计算每个单元格的宽度和高度
-            cell_width = self.large_square_position[2] / self.estimated_n
-            cell_height = self.large_square_position[3] / self.estimated_n
+    def clear_icon_in_cell(self, idx, cell_x, cell_y):
+        if self.grided:
+            position = self.question_board_positions[idx]
+            size = self.question_board_sizes[idx]
+            cell_width = position[2] / size
+            cell_height = position[3] / size
 
-            # 创建一个 QPainter 对象
             painter = QPainter(self.mine_layer)
-
-            # 设置composition mode为清除模式
             painter.setCompositionMode(QPainter.CompositionMode_Clear)
 
-            # 计算icon的区域
-            icon_x = self.large_square_position[0] + cell_x * cell_width
-            icon_y = self.large_square_position[1] + cell_y * cell_height
+            icon_x = position[0] + cell_x * cell_width
+            icon_y = position[1] + cell_y * cell_height
 
-            # 使用eraseRect删除这个区域
             painter.eraseRect(QRectF(icon_x, icon_y, cell_width, cell_height))
             painter.end()
             self.refresh_display()
@@ -492,7 +498,7 @@ class Canvas(QWidget):
         palette = self.color_label.palette()
         palette.setColor(QPalette.Background, Canvas.pen.color())
         self.color_label.setPalette(palette)
-        if other_canvas.finished:
+        if other_canvas.branch.finished:
             self.on_toggle_button_state_changed(True)
         self.refresh_display()
 

@@ -16,6 +16,9 @@ def parse_args():
         choices=["auto", "no_grid", "manual"],
         help="Grid mode: auto (default), no_grid, or manual.",
     )
+    parser.add_argument(
+        "--from_file", nargs="?", type = str, help="Load screenshot from file.",
+    )
     return parser.parse_args()
 
 
@@ -25,7 +28,6 @@ def main():
     app = QApplication(sys.argv)
 
     if args.from_screen:
-        grid = args.grid
         now = datetime.datetime.now()
         folder_path = r"C:\Users\19000\OneDrive - 北京大学\图片\屏幕截图"
         screenshot = ImageGrab.grab()
@@ -35,7 +37,11 @@ def main():
         latest_file = screenshot_path
 
         main_window = MainWindow()
-        main_window.from_image_path(latest_file, grid)
+        main_window.from_image_path(latest_file, args.grid)
+
+    elif args.from_file:
+        main_window = MainWindow()
+        main_window.from_image_path(args.from_file, args.grid)
     else:
         main_window = MainWindow()
 

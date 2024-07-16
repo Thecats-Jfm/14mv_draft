@@ -4,17 +4,21 @@ from .branch import Branch
 import numpy as np
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QInputDialog
+from copy import deepcopy
+
 
 
 class Problem:
     def __init__(self, main_window):
-        self.columns = None
-        self.rows = None
         self.branches = []
         self.name_branches = {}
         self.image_path = None
         self.main_window = main_window
         self.branch_count = 0
+        self.question_board_cnt = 0
+        self.question_board_positions = []
+        self.question_board_sizes = []
+
 
     def load_from_image(self, image_path, grid="auto"):
         """grid: auto; no_grid; manual"""
@@ -33,24 +37,24 @@ class Problem:
             # 使用OpenCV的imdecode函数从字节解码图像
             image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
 
-            self.large_square_position_list, self.estimated_n, self.test_n_scores = (
+            self.question_board_positions, self.question_board_sizes, self.test_scores = (
                 detect_squares(image)
             )
-
+            self.question_board_size0 = self.question_board_sizes[0]
             # Log details
             # logprint(f"Large Square Position: {self.large_square_position}", "debug")
-            logprint(f"Estimated n: {self.estimated_n}", "debug")
-            logprint(f"n scores: {self.test_n_scores}", "debug")
+            logprint(f"Estimated n: {self.question_board_size0}", "debug")
+            logprint(f"n scores: {self.test_scores}", "debug")
             logprint(
-                f"Number of squares: {len(self.large_square_position_list)}", "debug"
+                f"Number of squares: {len(self.question_board_positions)}", "debug"
             )
             logprint(
-                message=f"加载题目完成，尺寸={self.estimated_n}x{self.estimated_n},题板数量={len(self.large_square_position_list)}",
+                message=f"加载题目完成，尺寸={self.question_board_size0}x{self.question_board_size0},题板数量={len(self.question_board_positions)}",
                 level="info",
             )
 
         elif grid == "no_grid":
-            self.estimated_n = 0
+            self.question_board_size0 = 0
             self.test_n_scores = []
             self.large_square_position = None
             logprint("加载题目完成，无网格", "info")
@@ -58,17 +62,15 @@ class Problem:
             logprint("暂未实现手动网格", "warning")
             # temp
             text, ok = QInputDialog.getText(None, "Input Dialog", "n:")
-            self.estimated_n = int(text)
+            self.question_board_size0 = int(text)
             self.large_square_position = (
                 629,
                 654,
-                491 * self.estimated_n // 7,
-                515 * self.estimated_n // 7,
+                491 * self.question_board_size0 // 7,
+                515 * self.question_board_size0 // 7,
             )
 
         # Initialize main branch
-        self.columns = self.estimated_n
-        self.rows = self.estimated_n
         logprint("初始化主分支", "info")
         self._create_new_branch()
 
@@ -95,13 +97,18 @@ class Problem:
     def copy_branch(self, branch):
         # Create a new branch and copy data from the existing branch
         # Not create new branch to the bottom, but right below
-        new_branch = self._create_new_branch(branch.index_in_list() + 1)
-        new_branch.copy_from(branch)
+        # print(branch.index_in_list())
+        print(branch)
+        print(branch.name)
+        new_branch_name = self._create_new_branch(branch.index_in_list() + 1)
+        self.name_branches[new_branch_name].copy_from(branch)
 
         branch_idx = self.branches.index(branch)
+
         # Update main window and log the copy
         self.update_mainwindow(branch_idx)
-        logprint(f"复制分支{branch.name}为{new_branch.name}", "info")
+
+        logprint(f"复制分支{branch}为{self.name_branches[new_branch_name]}", "info")
 
     def _create_new_branch(self, idx=-1):
         # Private method to create a new branch and add to the lists
@@ -113,17 +120,17 @@ class Problem:
         else:
             self.branches.insert(idx, branch)
         self.name_branches[branch_name] = branch
-        return branch
+        return branch_name
 
-    def middle_click(self, branch, col, row, idx=0):
-        branch.canvas.copy_branch()
-        branch.canvas.copy_branch()
+    def middle_click(self, branch, board_idx, col, row, idx=0):
+        self.copy_branch(branch)
+        self.copy_branch(branch)
         idx = branch.index_in_list()
         branch_mine = self.branches[idx + 1]
         branch_safe = self.branches[idx + 2]
-        branch_mine.mark_mine(col, row)
-        branch_safe.mark_safe(col, row)
-        branch.canvas.delete_branch()
+        branch_mine.mark_mine(board_idx, col, row)
+        branch_safe.mark_safe(board_idx, col, row)
+        self.delete_branch(branch)
         self.update_mainwindow(idx)
 
     def reset_finished(self):

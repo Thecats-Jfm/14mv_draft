@@ -162,7 +162,7 @@ class MainWindow(QMainWindow):
         self.branch_list.clear()
         for branch in self.problem.branches:
             self.branch_list.addItem(
-                branch.name + ("√" if branch.canvas.finished else "")
+                branch.name + ("√" if branch.finished else "")
             )
 
         self.branch_list.setCurrentRow(new_idx)
