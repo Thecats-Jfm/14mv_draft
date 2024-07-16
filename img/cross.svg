@@ -1,8 +1,8 @@
-<svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
 
+<svg width="76" height="75" xmlns="http://www.w3.org/2000/svg">
  <g>
   <title>Layer 1</title>
-  <path opacity="0.5" id="svg_3" d="m25.5,25l50,50l-50,-50z" stroke-width="7" stroke="#4c4c4c" fill="none"/>
-  <path opacity="0.5" id="svg_4" d="m75.5,25l-50,50" stroke-width="7" stroke="#333333" fill="none"/>
+  <line x1="15" y1="15" x2="60" y2="60" stroke="#00cc00" stroke-width="7"/>
+  <line x1="60" y1="15" x2="15" y2="60" stroke="#00cc00" stroke-width="7"/>
  </g>
 </svg>

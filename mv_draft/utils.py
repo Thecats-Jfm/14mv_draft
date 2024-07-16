@@ -106,7 +106,7 @@ def find_grids(binary_image):
                 largest_square_contours[1] = approx_polygon
 
     # 如果只找到一个正方形，则删除第二个空元素
-    if largest_square_contours[1] is None or max_areas[1] < 0.2 * max_areas[0]:
+    if largest_square_contours[1] is None or max_areas[1] < 0.1 * max_areas[0]:
         largest_square_contours.pop()
 
     # 计算每个正方形的边界框

@@ -331,7 +331,7 @@ class Canvas(QWidget):
             painter = QPainter(pixmap)
 
             # Create and set QPen object
-            pen = QPen(Qt.blue)  # Set pen color
+            pen = QPen(Qt.cyan)  # Set pen color
             pen.setWidth(3)  # Set line width
             pen.setStyle(Qt.DashLine)  # Set dash line style
             painter.setPen(pen)
