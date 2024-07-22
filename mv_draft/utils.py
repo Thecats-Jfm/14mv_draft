@@ -118,7 +118,7 @@ def find_grids(binary_image):
     large_square_positions.sort(key=lambda pos: pos[0])
 
     # 如果两个正方形的区域有重叠，则删除第二个正方形
-    if(len(large_square_positions) > 1):
+    if len(large_square_positions) > 1:
         x1, y1, w1, h1 = large_square_positions[0]
         x2, y2, w2, h2 = large_square_positions[1]
         if x2 < x1 + w1:
