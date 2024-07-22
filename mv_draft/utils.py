@@ -105,7 +105,7 @@ def find_grids(binary_image):
                 max_areas[1] = area
                 largest_square_contours[1] = approx_polygon
 
-    # 如果只找到一个正方形，则删除第二个空元素
+    # 如果只找到一个正方形，或者两者大小差别太大，则删除第二个空元素
     if largest_square_contours[1] is None or max_areas[1] < 0.1 * max_areas[0]:
         largest_square_contours.pop()
 
@@ -116,6 +116,14 @@ def find_grids(binary_image):
 
     # 确保左侧的网格为1号网格，根据x坐标进行排序
     large_square_positions.sort(key=lambda pos: pos[0])
+
+    # 如果两个正方形的区域有重叠，则删除第二个正方形
+    if(len(large_square_positions) > 1):
+        x1, y1, w1, h1 = large_square_positions[0]
+        x2, y2, w2, h2 = large_square_positions[1]
+        if x2 < x1 + w1:
+            largest_square_contours.pop()
+            large_square_positions.pop()
 
     # 绘制并展示
     # for pos in large_square_positions:
